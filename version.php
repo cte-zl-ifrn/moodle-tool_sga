@@ -18,7 +18,7 @@
  * Plugin version and other meta-data are defined here.
  *
  * @package     local_sga
- * @copyright   2022 IFRN
+ * @copyright   2024 IFRN
  * @author      Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -31,4 +31,4 @@ $plugin->release = '0.1.001';
 $plugin->version = 2024_11_11_001;
 $plugin->maturity = MATURITY_STABLE;
 
-$plugin->requires = 2021_05_17_00;
+$plugin->requires = 2020_06_15_25; # 3.9.25, php >= 7.4
