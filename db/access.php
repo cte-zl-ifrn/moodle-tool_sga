@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Newblock block caps.
  *
@@ -9,7 +10,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = array(
-    'local/sga:adminview' => [
+    'tool/sga:adminview' => [
         'riskbitmask' => 0,
         'captype' => 'view',
         'contextlevel' => CONTEXT_SYSTEM,

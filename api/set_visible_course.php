@@ -1,15 +1,17 @@
 <?php
 
-namespace local_sga;
+namespace tool_sga;
 
 require_once('../../../config.php');
 require_once('../../../course/externallib.php');
 require_once('../locallib.php');
 require_once("servicelib.php");
 
-class set_visible_course_service extends \local_sga\service{
+class set_visible_course_service extends \tool_sga\service
+{
 
-    function do_call() {
+    function do_call()
+    {
         global $DB, $USER;
 
         $USER = $DB->get_record('user', ['username' => $_GET['username']]);
@@ -26,13 +28,12 @@ class set_visible_course_service extends \local_sga\service{
         return $this->execute($course, $visible);
     }
 
-    function execute($course, $visible) {
+    function execute($course, $visible)
+    {
         global $DB;
 
         $course->visible = $visible;
         $DB->update_record('course', $course);
         return ["error" => false];
     }
-
-
 }

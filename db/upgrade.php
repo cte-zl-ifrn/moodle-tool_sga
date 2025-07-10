@@ -17,7 +17,7 @@
 /**
  * Plugin upgrade steps are defined here.
  *
- * @package     local_sga
+ * @package     tool_sga
  * @category    upgrade
  * @copyright   2022 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -25,11 +25,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__.'/upgradelib.php');
+require_once(__DIR__ . '/upgradelib.php');
 
-function xmldb_local_sga_upgrade($oldversion) {
+function xmldb_tool_sga_upgrade($oldversion)
+{
     sga_bulk_course_custom_field();
     sga_bulk_user_custom_field();
-    return local_sga_migrate($oldversion);
+    return tool_sga_migrate($oldversion);
 }
-

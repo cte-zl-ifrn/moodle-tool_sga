@@ -6,13 +6,13 @@
  * This module provides extensive analytics on a platform of choice
  * Currently support Google Analytics and Piwik
  *
- * @package     local_sga
+ * @package     tool_sga
  * @category    upgrade
  * @copyright   2020 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_sga;
+namespace tool_sga;
 
 require_once("$CFG->dirroot/course/externallib.php");
 require_once("$CFG->dirroot/enrol/externallib.php");
@@ -64,7 +64,7 @@ function dienow($message, $code)
 
 function config($name)
 {
-    return get_config('local_sga', $name);
+    return get_config('tool_sga', $name);
 }
 
 function aget($array, $key, $default = null)

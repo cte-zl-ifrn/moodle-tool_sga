@@ -1,6 +1,6 @@
 <?php
 
-namespace local_sga;
+namespace tool_sga;
 
 require_once('../../../config.php');
 require_once('../locallib.php');
@@ -16,7 +16,7 @@ define("REGEX_CODIGO_DIARIO_CURSO", 3);
 define("REGEX_CODIGO_DIARIO_TURMA", 4);
 define("REGEX_CODIGO_DIARIO_DISCIPLINA", 5);
 
-class get_diarios_service extends \local_sga\service
+class get_diarios_service extends \tool_sga\service
 {
 
     function get_cursos($all_diarios)
@@ -64,7 +64,7 @@ class get_diarios_service extends \local_sga\service
 
     function get_all_diarios($username)
     {
-        return \local_sga\get_recordset_as_array(
+        return \tool_sga\get_recordset_as_array(
             "
             SELECT      c.id, 
                         c.shortname shortname,
@@ -147,16 +147,16 @@ class get_diarios_service extends \local_sga\service
     function do_call()
     {
         return $this->get_diarios(
-            \local_sga\aget($_GET, 'username', null),
-            \local_sga\aget($_GET, 'semestre', null),
-            \local_sga\aget($_GET, 'situacao', null),
-            \local_sga\aget($_GET, 'ordenacao', null),
-            \local_sga\aget($_GET, 'disciplina', null),
-            \local_sga\aget($_GET, 'curso', null),
-            \local_sga\aget($_GET, 'arquetipo', 'student'),
-            \local_sga\aget($_GET, 'q', null),
-            \local_sga\aget($_GET, 'page', 1),
-            \local_sga\aget($_GET, 'page_size', 9),
+            \tool_sga\aget($_GET, 'username', null),
+            \tool_sga\aget($_GET, 'semestre', null),
+            \tool_sga\aget($_GET, 'situacao', null),
+            \tool_sga\aget($_GET, 'ordenacao', null),
+            \tool_sga\aget($_GET, 'disciplina', null),
+            \tool_sga\aget($_GET, 'curso', null),
+            \tool_sga\aget($_GET, 'arquetipo', 'student'),
+            \tool_sga\aget($_GET, 'q', null),
+            \tool_sga\aget($_GET, 'page', 1),
+            \tool_sga\aget($_GET, 'page_size', 9),
         );
     }
 }

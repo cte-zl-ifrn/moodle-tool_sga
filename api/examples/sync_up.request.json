@@ -1,7 +1,13 @@
 {
   "users": {
     "synchronous": true,
-    "update_fields": ["firstname", "lastname", "email", "auth", "active"],
+    "update_fields": [
+      "firstname",
+      "lastname",
+      "email",
+      "auth",
+      "active"
+    ],
     "list": [
       {
         "idnumber": "idnumber",
@@ -31,7 +37,9 @@
   },
   "cohorts": {
     "synchronous": true,
-    "update_fields": ["visible"],
+    "update_fields": [
+      "visible"
+    ],
     "list": [
       {
         "idnumber": "",
@@ -52,7 +60,6 @@
     ]
   },
   "categories": {
-    "synchronous": true,
     "update_fields": [],
     "list": [
       {
@@ -68,18 +75,10 @@
         "visible": 1,
         "theme": "",
         "custom_customfield1": "custom_customfield1",
-        "categories": {
-          "synchronous": true,
-          "update_fields": [],
-          "list": [
-
-          ]
-        }
       }
     ]
   },
   "courses": {
-    "synchronous": true,
     "update_fields": [],
     "category": "adsf134",
     "list": [
@@ -154,7 +153,10 @@
           "list": [
             {
               "idnumber": "",
-              "roles_shortname": ["shortname1","shortname2"]
+              "roles_shortname": [
+                "shortname1",
+                "shortname2"
+              ]
             }
           ]
         }

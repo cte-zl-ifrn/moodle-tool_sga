@@ -1,11 +1,12 @@
 <?php
+
 /**
  * SGA Integration
  *
  * This module provides extensive analytics on a platform of choice
  * Currently support Google Analytics and Piwik
  *
- * @package     local_sga
+ * @package     tool_sga
  * @category    upgrade
  * @copyright   2020 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -18,7 +19,7 @@ class sga_admin_settingspage extends admin_settingpage
 
     public function __construct($admin_mode)
     {
-        $plugin_name = 'local_sga';
+        $plugin_name = 'tool_sga';
         parent::__construct($plugin_name, get_string('pluginname', $plugin_name), 'moodle/site:config', false, NULL);
         $this->setup($admin_mode);
     }

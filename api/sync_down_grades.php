@@ -1,6 +1,6 @@
 <?php
 
-namespace local_sga;
+namespace tool_sga;
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -10,7 +10,7 @@ require_once('../../../config.php');
 require_once("../locallib.php");
 require_once("servicelib.php");
 
-// Link de acesso (exemplo): http://ava/local/sga/api/sync_down_grades.php?codigo_diario=20231.1.15806.1E.TEC.1386
+// Link de acesso (exemplo): http://ava/admin/tool/sga/api/sync_down_grades.php?codigo_diario=20231.1.15806.1E.TEC.1386
 
 class sync_down_grades_service extends service
 {

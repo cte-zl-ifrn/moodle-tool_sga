@@ -1,13 +1,15 @@
 <?php
 
-namespace local_sga;
+namespace tool_sga;
 
 require_once('../locallib.php');
 require_once("servicelib.php");
 
-class get_atualizacoes_counts_service extends \local_sga\service{
+class get_atualizacoes_counts_service extends \tool_sga\service
+{
 
-    function do_call() {
+    function do_call()
+    {
         global $DB, $USER;
 
         $USER = $DB->get_record('user', ['username' => $_GET['username']]);
@@ -22,11 +24,11 @@ class get_atualizacoes_counts_service extends \local_sga\service{
         }
     }
 
-    function get_atualizacoes_counts($useridto) {
+    function get_atualizacoes_counts($useridto)
+    {
         return [
             "unread_conversations_count" => \core_message_external::get_unread_conversations_count($useridto),
             "unread_popup_notification_count" => \message_popup_external::get_unread_popup_notification_count($useridto),
         ];
     }
-
 }

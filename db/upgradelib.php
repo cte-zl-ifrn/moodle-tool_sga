@@ -17,7 +17,7 @@
 /**
  * Plugin upgrade helper functions are defined here.
  *
- * @package     local_sga
+ * @package     tool_sga
  * @category    upgrade
  * @copyright   2022 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -28,20 +28,20 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/local/sga/locallib.php');
+require_once($CFG->dirroot . '/admin/tool/sga/locallib.php');
 function sga_save_course_custom_field($categoryid, $shortname, $name, $type = 'text', $configdata = '{"required":"0","uniquevalues":"0","displaysize":50,"maxlength":250,"ispassword":"0","link":"","locked":"0","visibility":"0"}')
 {
-    return \local_sga\get_or_create(
+    return \tool_sga\get_or_create(
         'customfield_field',
         ['shortname' => $shortname],
-        ['categoryid' => $categoryid, 'name' => $name, 'type' => $type, 'configdata' => $configdata, 'timecreated' => time(), 'timemodified' => time(), 'sortorder' => \local_sga\get_last_sort_order('customfield_field')]
+        ['categoryid' => $categoryid, 'name' => $name, 'type' => $type, 'configdata' => $configdata, 'timecreated' => time(), 'timemodified' => time(), 'sortorder' => \tool_sga\get_last_sort_order('customfield_field')]
     );
 }
 
 
 function sga_save_user_custom_field($categoryid, $shortname, $name, $datatype = 'text', $visible = 1, $p1 = NULL, $p2 = NULL)
 {
-    return \local_sga\get_or_create(
+    return \tool_sga\get_or_create(
         'user_info_field',
         ['shortname' => $shortname],
         ['categoryid' => $categoryid, 'name' => $name, 'description' => $name, 'descriptionformat' => 2, 'datatype' => $datatype, 'visible' => $visible, 'param1' => $p1, 'param2' => $p2]
@@ -52,10 +52,10 @@ function sga_save_user_custom_field($categoryid, $shortname, $name, $datatype = 
 function sga_bulk_course_custom_field()
 {
     global $DB;
-    $cid = \local_sga\get_or_create(
+    $cid = \tool_sga\get_or_create(
         'customfield_category',
         ['name' => 'SGA', 'component' => 'core_course', 'area' => 'course'],
-        ['sortorder' => \local_sga\get_last_sort_order('customfield_category'), 'itemid' => 0, 'contextid' => 1, 'descriptionformat' => 0, 'timecreated' => time(), 'timemodified' => time()]
+        ['sortorder' => \tool_sga\get_last_sort_order('customfield_category'), 'itemid' => 0, 'contextid' => 1, 'descriptionformat' => 0, 'timecreated' => time(), 'timemodified' => time()]
     )->id;
     sga_save_course_custom_field($cid, 'campus_id', 'ID do campus');
     sga_save_course_custom_field($cid, 'campus_descricao', 'Descrição do campus');
@@ -95,7 +95,7 @@ function sga_bulk_user_custom_field()
 {
     global $DB;
 
-    $cid = \local_sga\get_or_create('user_info_category', ['name' => 'SGA'], ['sortorder' => \local_sga\get_last_sort_order('user_info_category')])->id;
+    $cid = \tool_sga\get_or_create('user_info_category', ['name' => 'SGA'], ['sortorder' => \tool_sga\get_last_sort_order('user_info_category')])->id;
 
     sga_save_user_custom_field($cid, 'email_google_classroom', 'E-mail @escolar (Google Classroom');
     sga_save_user_custom_field($cid, 'email_academico', 'E-mail @academico (Microsoft)');
@@ -127,7 +127,7 @@ function sga_bulk_user_custom_field()
     sga_save_user_custom_field($cid, 'last_login', 'JSON do último login', 'textarea', 0);
 }
 
-function local_sga_migrate($oldversion)
+function tool_sga_migrate($oldversion)
 {
     global $DB;
 

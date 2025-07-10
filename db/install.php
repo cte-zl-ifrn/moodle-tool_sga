@@ -17,20 +17,21 @@
 /**\
  * Code to be executed after the plugin's database scheme has been installed is defined here.
  *
- * @package     local_sga
+ * @package     tool_sga
  * @category    upgrade
  * @copyright   2022 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot . '/local/sga/db/upgrade.php');
-require_once(__DIR__.'/upgradelib.php');
+require_once($CFG->dirroot . '/admin/tool/sga/db/upgrade.php');
+require_once(__DIR__ . '/upgradelib.php');
 
 /**
  * Custom code to be run on installing the plugin.
  */
-function xmldb_local_sga_install() {
+function xmldb_tool_sga_install()
+{
     sga_bulk_course_custom_field();
     sga_bulk_user_custom_field();
-    return local_sga_migrate(0);
+    return tool_sga_migrate(0);
 }
