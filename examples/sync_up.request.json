@@ -1,4 +1,22 @@
 {
+  "categories": {
+    "update_fields": [],
+    "list": [
+      {
+        "idnumber": "asdf1",
+        "name": ""
+      },
+      {
+        "idnumber": "adsf134",
+        "name": "",
+        "description": "",
+        "descriptionformat": 0,
+        "visible": 1,
+        "theme": "",
+        "parent_idnumber": "asdf1"
+      }
+    ]
+  },
   "users": {
     "synchronous": false,
     "update_fields": [
@@ -56,26 +74,6 @@
             "idnumber2"
           ]
         }
-      }
-    ]
-  },
-  "categories": {
-    "update_fields": [],
-    "list": [
-      {
-        "idnumber": "1",
-        "name": "",
-        "description": ""
-      },
-      {
-        "idnumber": "adsf134",
-        "name": "",
-        "description": "",
-        "descriptionformat": 0,
-        "visible": 1,
-        "theme": "",
-        "custom_customfield1": "custom_customfield1",
-        "parent": "1"
       }
     ]
   },

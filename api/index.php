@@ -32,7 +32,7 @@ function exception_handler($exception)
 }
 
 try {
-    require_once('../../../config.php');
+    require_once('../../../../config.php');
     header('Content-Type: application/json; charset=utf-8');
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
@@ -41,15 +41,15 @@ try {
     set_exception_handler('\tool_sga\exception_handler');
 
     $whitelist = [
-        'get_diarios',
-        'get_atualizacoes_counts',
-
-        'set_favourite_course',
-        'set_visible_course',
-
         'sync_up_enrolments',
+        // 'get_diarios',
+        // 'get_atualizacoes_counts',
+
+        // 'set_favourite_course',
+        // 'set_visible_course',
+
         // 'sync_down_attendances',
-        'sync_down_grades'
+        // 'sync_down_grades'
     ];
     $params = explode('&', $_SERVER["QUERY_STRING"]);
     $service_name = $params[0];
@@ -59,7 +59,7 @@ try {
     }
     require_once "$service_name.php";
 
-    $service_class = "\tool_sga\\$service_name" . "_service";
+    $service_class = "\\tool_sga\\$service_name" . "_service";
     $service = new $service_class();
     $service->call();
 } catch (\Exception $e) {
