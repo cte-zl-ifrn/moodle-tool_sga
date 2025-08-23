@@ -1,4 +1,30 @@
 <?php
+// This file is part of "Moodle SGA Integration"
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * SGA Integration
+ *
+ * This module provides extensive analytics on a platform of choice
+ * Currently support Google Analytics and Piwik
+ *
+ * @package     tool_sga
+ * @category    upgrade
+ * @copyright   2020 Kelson Medeiros <kelsoncm@gmail.com>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace tool_sga;
 
@@ -23,6 +49,7 @@ class sync_up_enrolments_service extends service
     private $json;
     private $sgaIssuer;
     private $categories = [];
+    private $urls = [];
     private $context;
     private $course;
     private $diarioIsNew = false;
@@ -39,8 +66,9 @@ class sync_up_enrolments_service extends service
     private $default_user_preferences;
 
 
-    function do_call()
-    {
+    function do_call() {
+        global $CFG;
+        $prefix = "{$CFG->wwwroot}/course/view.php";
         $jsonstring = file_get_contents('php://input');
 
         $this->validate_json($jsonstring);
@@ -51,11 +79,14 @@ class sync_up_enrolments_service extends service
     }
 
 
-    function validate_json($jsonstring)
-    {
-        $this->json = json_decode($jsonstring);
+    function validate_json($jsonstring) {
 
-        if (!$this->json) {
+        try {
+            $this->json = json_decode($jsonstring);
+            if (!$this->json) {
+                throw new \Exception("Erro ao validar o JSON.");
+            }
+        } catch (\Exception $e) {
             throw new \Exception("Erro ao validar o JSON, favor corrigir.");
         }
 
@@ -78,20 +109,20 @@ class sync_up_enrolments_service extends service
     }
 
 
-    function process($jsonstring, $addMembers)
-    {
+    function process($jsonstring, $addMembers) {
         global $CFG;
         $prefix = "{$CFG->wwwroot}/course/view.php";
 
         $this->sync_categories();
+        $this->sync_courses();
 
         /*
         $this->sync_auths();
         $this->sync_users();
-        */
 
         $this->isRoom = false;
         $this->sync_course($this->turmaCategory->id);
+        */
 
         /*
         $this->diario = $this->course;
@@ -102,10 +133,10 @@ class sync_up_enrolments_service extends service
             $this->sync_groups();
         }
         $this->sync_cohorts(); // só existe em diário
-        */
 
         $this->isRoom = true;
         $this->sync_course($this->cursoCategory->id);
+        */
         /*
         $this->coordenacao = $this->course;
         $this->sync_enrols();
@@ -116,13 +147,26 @@ class sync_up_enrolments_service extends service
         }
         */
 
-        // return ["url" => "$prefix?id={$this->diario->id}", "url_sala_coordenacao" => "$prefix?id={$this->coordenacao->id}"];
-        return ["url" => "$prefix?id=0", "url_sala_coordenacao" => "$prefix?id=0"];
+        return $this->urls;
     }
 
 
-    function sync_categories()
-    {
+    function get_category_by_idnumber($idnumber) {
+        global $DB;
+
+        if (isset($this->categories[$idnumber])) {
+            return $this->categories[$idnumber];
+        }
+
+        $category = $DB->get_record('course_categories', ['idnumber' => $idnumber]);
+        if ($category) {
+            $this->categories[$idnumber] = $category;
+            return $category;
+        }
+        return null;
+    }
+
+    function sync_categories() {
         global $DB;
 
         if (!isset($this->json->categories->list)) {
@@ -132,14 +176,11 @@ class sync_up_enrolments_service extends service
         $i = 0;
         foreach ($this->json->categories->list as $category) {
             $i++;
-            if (!isset($this->categories[$category->idnumber])) {
-                throw new \Exception("A categoria #{$i} veio sem com o atributo 'idnumber', favor corrigir.");
+            if (!isset($category->idnumber)) {
+                throw new \Exception("A categoria #{$i} veio sem o atributo 'idnumber', favor corrigir.");
             }
-            if (!isset($this->categories[$category->name])) {
-                throw new \Exception("A categoria #{$i} veio sem com o atributo 'name', favor corrigir.");
-            }
-            if (!isset($this->categories[$category->description])) {
-                throw new \Exception("A categoria #{$i} veio sem o atributo 'description', favor corrigir.");
+            if (!isset($category->name)) {
+                throw new \Exception("A categoria #{$i} veio sem o atributo 'name', favor corrigir.");
             }
 
             $category_on_db = $DB->get_record('course_categories', ['idnumber' => $category->idnumber]);
@@ -147,7 +188,8 @@ class sync_up_enrolments_service extends service
                 $data = [
                     'idnumber' => $category->idnumber,
                     'name' => $category->name,
-                    'description' => $category->description,
+
+                    'description' => isset($category->description) ? $category->description : null,
                     'descriptionformat' => isset($category->descriptionformat) ? $category->descriptionformat : 0,
                     'visible' => isset($category->visible) ? $category->visible : 1,
                     'theme' => isset($category->theme) ? $category->theme : '',
@@ -155,13 +197,14 @@ class sync_up_enrolments_service extends service
                     'timemodified' => time()
                 ];
 
-                if (isset($this->categories[$category->parent_idnumber])) {
+                if (isset($category->parent_idnumber) && isset($this->categories[$category->parent_idnumber])) {
                     $parent = $DB->get_record('course_categories', ['idnumber' => $category->parent_idnumber]);
                     if (!empty($parent) && isset($parent->id)) {
                         $data['parent'] = $parent->id;
                     }
                 }
                 $category_on_db = \core_course_category::create($data);
+                $this->categories[$category->idnumber] = $category_on_db;
             } elseif (isset($this->json->categories->update_fields)) {
                 $update_fields = $this->json->categories->update_fields;
                 $data = [];
@@ -197,17 +240,93 @@ class sync_up_enrolments_service extends service
                 }
 
                 if (count($data) > 0) {
-                    \core_course_category::update($data);
+                    $category = \core_course_category::get($category_on_db->id);
+                    $category->update($data);
+                    $this->categories[$category->idnumber] = $category;
                 }
             }
+        }
+    }
 
-            $this->categories[$category->idnumber] = $category_on_db;
+    
+    function sync_courses() {
+        global $DB, $CFG;
+        $prefix = "{$CFG->wwwroot}/course/view.php";
+
+        if (!isset($this->json->courses->list)) {
+            return;
+        }
+
+        $i = 0;
+        foreach ($this->json->courses->list as $course) {
+            if (!isset($course->idnumber)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'idnumber', favor corrigir.");
+            }
+            if (!isset($course->shortname)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'shortname', favor corrigir.");
+            }
+            if (!isset($course->fullname)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'fullname', favor corrigir.");
+            }
+            if (!isset($course->category_idnumber)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'category_idnumber', favor corrigir.");
+            }
+            $course_on_db = $DB->get_record('course', ['idnumber' => $course->idnumber]) ?: $DB->get_record('course', ['shortname' => $course->shortname]);
+            $category_on_db = $this->get_category_by_idnumber($course->category_idnumber);
+
+            if (!$course) {
+                $data = [
+                    "idnumber" => $course_on_db->idnumber,
+                    "shortname" => $course_on_db->shortname,
+                    "fullname" => $course_on_db->fullname,
+                    "category" => $category_on_db->id,
+
+                    "visible" => isset($course_on_db->visible) ? $course_on_db->visible : 0,
+                    "enablecompletion" => isset($course_on_db->enablecompletion) ? $course_on_db->enablecompletion : 0,
+                    "showreports" => isset($course_on_db->showreports) ? $course_on_db->showreports : 1,
+                    "completionnotify" => isset($course_on_db->completionnotify) ? $course_on_db->completionnotify : 1,
+
+                    // "customfield_campus_id" => $this->json->campus->id,
+                ];
+                $course_on_db = create_course((object)$data);
+                $course_on_db->context = \context_course::instance($course_on_db->id);
+            } elseif (isset($this->json->courses->update_fields)) {
+                $update_fields = $this->json->courses->update_fields;
+                if (in_array('idnumber', $update_fields)) {
+                    throw new Exception("Não é possível atualizar o 'idnumber'.", 1);
+                }
+                if (in_array('shortname', $update_fields)) {
+                    $course_on_db->shortname = $course->shortname;
+                }
+                if (in_array('fullname', $update_fields)) {
+                    $course_on_db->fullname = $course->fullname;
+                }
+                if (in_array('category', $update_fields) && $course->category) {
+                    $course_on_db->category = $category_on_db->id;
+                }
+                if (in_array('visible', $update_fields) && $course->visible) {
+                    $course_on_db->visible = $course->visible;
+                }
+                if (in_array('enablecompletion', $update_fields) && $course->enablecompletion) {
+                    $course_on_db->enablecompletion = $course->enablecompletion;
+                }
+                if (in_array('showreports', $update_fields) && $course->showreports) {
+                    $course_on_db->showreports = $course->showreports;
+                }
+                if (in_array('completionnotify', $update_fields) && $course->completionnotify) {
+                    $course_on_db->completionnotify = $course->completionnotify;
+                }
+                update_course($course_on_db);
+                $course_on_db->context = \context_course::instance($course_on_db->id);
+            }
+
+            $this->courses[$course_on_db->idnumber] = $course_on_db;
+            $this->urls[$course_on_db->idnumber] = "$prefix?id={$course_on_db->id}";
         }
     }
 
     /*
-    function sync_oauth_issuer()
-    {
+    function sync_oauth_issuer() {
         $this->sgaIssuer = create_or_update(
             'oauth2_issuer',
             [
@@ -240,8 +359,7 @@ class sync_up_enrolments_service extends service
     }
 
 
-    function sync_auths()
-    {
+    function sync_auths() {
         global $DB;
 
         $this->studentAuth = config('default_student_auth');
@@ -251,8 +369,7 @@ class sync_up_enrolments_service extends service
     }
 
 
-    function sync_users()
-    {
+    function sync_users() {
         global $CFG, $DB;
 
         $professores = isset($this->json->professores) ? $this->json->professores : [];
@@ -266,8 +383,7 @@ class sync_up_enrolments_service extends service
     }
 
 
-    function sync_user($usuario)
-    {
+    function sync_user($usuario) {
         global $DB;
 
         $username = $usuario->isAluno ? $usuario->matricula : $usuario->login;
@@ -319,88 +435,8 @@ class sync_up_enrolments_service extends service
             \profile_save_custom_fields($usuario->user->id, $custom_fields);
         }
     }
-*/
-/*
-    function sync_course($categoryid)
-    {
-        global $DB;
 
-        $course_code = $this->isRoom ? "{$this->json->campus->sigla}.{$this->json->curso->codigo}" : "{$this->json->turma->codigo}.{$this->json->componente->sigla}";
-        $course_code_long = $this->isRoom ? $course_code : "{$course_code}#{$this->json->diario->id}";
-        $this->course = $DB->get_record('course', ['idnumber' => $course_code_long]) ?: $DB->get_record('course', ['idnumber' => $course_code]);
-        if (!$this->course) {
-            $this->course = $DB->get_record('course', ['shortname' => $course_code_long]) ?: $DB->get_record('course', ['shortname' => $course_code]);
-        }
-
-        if (!$this->course) {
-            $data = [
-                "category" => $categoryid,
-                "shortname" => $course_code_long,
-                "fullname" => $this->isRoom ? "Sala de coordenação do curso {$this->json->curso->nome}" : $this->json->componente->descricao,
-                "idnumber" => $course_code_long,
-                "visible" => 0,
-                "enablecompletion" => 1,
-                // "startdate"=>time(),
-                "showreports" => 1,
-                "completionnotify" => 1,
-
-                "customfield_campus_id" => $this->json->campus->id,
-                "customfield_campus_descricao" => $this->json->campus->descricao,
-                "customfield_campus_sigla" => $this->json->campus->sigla,
-
-                "customfield_curso_id" => $this->json->curso->id,
-                "customfield_curso_codigo" => $this->json->curso->codigo,
-                "customfield_curso_descricao" => $this->json->curso->descricao,
-                "customfield_curso_nome" => $this->json->curso->nome,
-            ];
-
-            if ($this->isRoom) {
-                $data = array_merge(
-                    $data,
-                    [
-                        "customfield_curso_sala_coordenacao" => 'Sim',
-                    ]
-                );
-            } else {
-                $data = array_merge(
-                    $data,
-                    [
-                        "customfield_curso_sala_coordenacao" => 'Não',
-
-                        "customfield_turma_id" => $this->json->turma->id,
-                        "customfield_turma_codigo" => $this->json->turma->codigo,
-
-                        "customfield_turma_ano_periodo" => substr($this->json->turma->codigo, 0, 4) . "." . substr($this->json->turma->codigo, 4, 1),
-
-                        "customfield_diario_id" => $this->json->diario->id,
-                        "customfield_diario_situacao" => $this->json->diario->situacao,
-
-                        "customfield_disciplina_id" => $this->json->componente->id,
-                        "customfield_disciplina_sigla" => $this->json->componente->sigla,
-                        "customfield_disciplina_descricao" => $this->json->componente->descricao,
-                        "customfield_disciplina_descricao_historico" => $this->json->componente->descricao_historico,
-                        // "customfield_disciplina_periodo"=> $this->json->componente->periodo,
-                        "customfield_disciplina_tipo" => $this->json->componente->tipo,
-                        "customfield_disciplina_optativo" => $this->json->componente->optativo,
-                        "customfield_disciplina_qtd_avaliacoes" => $this->json->componente->qtd_avaliacoes,
-                    ]
-                );
-            }
-            $this->course = create_course((object)$data);
-            $this->diarioIsNew = true;
-        } elseif (!$this->isRoom) {
-            $this->course->idnumber = $course_code_long;
-            $this->course->shortname = $course_code_long;
-            update_course($this->course);
-        }
-
-        $this->context = \context_course::instance($this->course->id);
-    }
-*/
-
-/*
-    function sync_enrols()
-    {
+    function sync_enrols() {
         $this->professor_enrol = $this->get_enrolment_config('teacher');
         $this->tutor_enrol = $this->get_enrolment_config('assistant');
         $this->docente_enrol = $this->get_enrolment_config('instructor');
@@ -408,8 +444,7 @@ class sync_up_enrolments_service extends service
     }
 
 
-    function get_enrolment_config($type)
-    {
+    function get_enrolment_config($type) {
         $roleid = config("default_{$type}_role_id");
         $enrol_type = config("default_{$type}_enrol_type");
         $enrol = enrol_get_plugin($enrol_type);
@@ -422,8 +457,7 @@ class sync_up_enrolments_service extends service
     }
 
 
-    function get_instance($enrol_type)
-    {
+    function get_instance($enrol_type) {
         foreach (\enrol_get_instances($this->course->id, FALSE) as $i) {
             if ($i->enrol == $enrol_type) {
                 return $i;
@@ -433,8 +467,7 @@ class sync_up_enrolments_service extends service
     }
 
 
-    function sync_docentes_enrol()
-    {
+    function sync_docentes_enrol() {
         global $CFG, $DB;
 
         if (isset($this->json->professores)) {
@@ -452,9 +485,7 @@ class sync_up_enrolments_service extends service
         }
     }
 
-
-    function sync_discentes_enrol()
-    {
+    function sync_discentes_enrol() {
         global $CFG, $DB;
         $alunos_suspensos = [];
         $alunos_sincronizados = [];
@@ -477,8 +508,7 @@ class sync_up_enrolments_service extends service
     }
 
 
-    function sync_enrol($enrol, $usuario, $status)
-    {
+    function sync_enrol($enrol, $usuario, $status) {
         if (is_enrolled($this->context, $usuario->user)) {
             $enrol->enrol->update_user_enrol($enrol->instance, $usuario->user->id, $status);
         } else {
@@ -487,8 +517,7 @@ class sync_up_enrolments_service extends service
     }
 
 
-    function sync_groups()
-    {
+    function sync_groups() {
         global $CFG, $DB;
         if (isset($this->json->alunos)) {
             $grupos = [];
@@ -533,8 +562,7 @@ class sync_up_enrolments_service extends service
         }
     }
 
-    function sync_group($group_name)
-    {
+    function sync_group($group_name) {
         global $DB;
         $data = ['courseid' => $this->course->id, 'name' => $group_name];
         $group = $DB->get_record('groups', $data);
@@ -545,8 +573,7 @@ class sync_up_enrolments_service extends service
         return $group;
     }
 
-    function getIdDosAlunosFaltandoAgrupar($group, $alunos)
-    {
+    function getIdDosAlunosFaltandoAgrupar($group, $alunos) {
         global $DB;
         $alunoIds = array_map(function ($x) {
             return $x->user->id;
@@ -559,8 +586,7 @@ class sync_up_enrolments_service extends service
         }, $ja_existem);
     }
 
-    function sync_cohorts()
-    {
+    function sync_cohorts() {
         global $DB;
 
         $roles = [];
@@ -616,9 +642,9 @@ class sync_up_enrolments_service extends service
             }
         }
     }
+*/
 
-    function insertSyncDB($jsonstring)
-    {
+    function insertSyncDB($jsonstring) {
         global $DB;
 
         $DB->insert_record(
@@ -630,5 +656,4 @@ class sync_up_enrolments_service extends service
             ]
         );
     }
-*/
 }

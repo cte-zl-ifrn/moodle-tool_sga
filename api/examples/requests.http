@@ -1,0 +1,173 @@
+### No VSCode, instale o plugin "REST Client" e veja a mágica ocorer :)
+### Pressione Ctrl + Alt + R, ou "Send Request", para executar cada request
+
+### Apenas os atributos os obrigatórios
+POST http://moodle/admin/tool/sga/api/?sync_up_enrolments HTTP/1.1
+Authentication: Token changeme
+
+{
+  "categories": {
+    "update_fields": ["name", "description", "descriptionformat", "visible", "theme"],
+    "list": [
+      {
+        "idnumber": "diarios",
+        "name": "Diários"
+      },
+      {
+        "parent_idnumber": "diarios",
+        "idnumber": "ZL",
+        "name": "CAMPUS AVANÇADO NATAL-ZONA LESTE"
+      },
+      {
+        "parent_idnumber": "ZL",
+        "idnumber": "15806",
+        "name": "Tecnologia em Sistemas para Internet"
+      },
+      {
+        "parent_idnumber": "15806",
+        "idnumber": "15806.2025.2",
+        "name": "2025.2"
+      },
+      {
+        "parent_idnumber": "15806.2025.2",
+        "idnumber": "20252.1.15806.448.1E",
+        "name": "20252.1.15806.448.1E",
+        "description": "Diários\n<br>da turma 20252.1.15806.448.1E,\n<br>do curso Tecnologia em Sistemas para Internet,\n<br>do campus CAMPUS AVANÇADO NATAL-ZONA LESTE.\n<br>Atualizado!",
+        "descriptionformat": 1,
+        "visible": 1
+      }
+    ]
+  }
+}
+
+
+### Matricula alguns alunos
+POST http://moodle/admin/tool/sga/api/?sync_up_enrolments HTTP/1.1
+Authentication: Token changeme
+
+{
+  "categories": {
+    "update_fields": ["name", "description", "descriptionformat", "visible", "theme"],
+    "list": [
+      {
+        "idnumber": "diarios",
+        "name": "Diários"
+      },
+      {
+        "parent_idnumber": "diarios",
+        "idnumber": "ZL",
+        "name": "CAMPUS AVANÇADO NATAL-ZONA LESTE"
+      },
+      {
+        "parent_idnumber": "ZL",
+        "idnumber": "15806",
+        "name": "Tecnologia em Sistemas para Internet"
+      },
+      {
+        "parent_idnumber": "15806",
+        "idnumber": "15806.2025.2",
+        "name": "2025.2"
+      },
+      {
+        "parent_idnumber": "15806.2025.2",
+        "idnumber": "20252.1.15806.448.1E",
+        "name": "20252.1.15806.448.1E",
+        "description": "Diários\n<br>da turma 20252.1.15806.448.1E,\n<br>do curso Tecnologia em Sistemas para Internet,\n<br>do campus CAMPUS AVANÇADO NATAL-ZONA LESTE.\n<br>Atualizado!",
+        "descriptionformat": 1,
+        "visible": 1
+      }
+    ]
+  },
+  "courses": {
+    "update_fields": [],
+    "list": [
+      {
+        "idnumber": "20252.1.15806.448.2E.TEC.1018#123456",
+        "shortname": "20252.1.15806.448.2E.TEC.1018#123456",
+        "fullname": "Leitura e Produção de Textos Acadêmicos e de Divulgação Científica",
+        "category_idnumber": "20252.1.15806.448.1E"
+      },
+      {
+        "idnumber": "ZL.15806",
+        "shortname": "ZL.15806",
+        "fullname": "Sala da Coordenação do Curso de Tecnologia em Sistemas para Internet",
+        "category_idnumber": "15806"
+      }
+    ]
+  }
+}
+
+### Desativa o 6 pois deixou de vir
+POST http://integrador/api/enviar_diarios/ HTTP/1.1
+Authentication: Token changeme
+
+{
+    "curso": {
+        "id": 1,
+        "nome": "Tecnologia em Redes de Computadores",
+        "codigo": "00001",
+        "descricao": "Tecnologia em Redes de Computadores - Nome Completo do Campus"
+    },
+    "turma": {
+        "id": 2,
+        "codigo": "20221.6.00001.3E"
+    },
+    "alunos": [
+        {
+            "id": 4,
+            "nome": "Nome do aluno quatro",
+            "polo": {
+                "id": 1,
+                "descricao": "Pólo Assú"
+            },
+            "situacao": "Ativo",
+            "situacao_diario": "Inativo",
+            "matricula": "201830000100004",
+            "email": "nome.4@academico.ifrn.edu.br",
+            "email_secundario": "nome.4@hotmail.com"
+        },
+        {
+            "id": 5,
+            "nome": "Nome do aluno cinco",
+            "polo": {
+                "id": 2,
+                "descricao": "Pólo EaD"
+            },
+            "programa": "UAB",
+            "situacao": "Inativo",
+            "situacao_diario": "Ativo",
+            "matricula": "201830000100005",
+            "email": "nome.5@academico.ifrn.edu.br",
+            "email_secundario": "nome.5@gmail.com"
+        }
+    ],
+    "campus": {
+        "id": 1,
+        "sigla": "EAD",
+        "descricao": "Campus EaD"
+    },
+    "diario": {
+        "id": 2,
+        "sigla": "TEC.0001",
+        "situacao": "Aberto",
+        "descricao": "Bancos de Dados",
+        "descricao_historico": "Bancos de Dados"
+    },
+    "componente": {
+        "id": 1,
+        "tipo": 1,
+        "sigla": "TEC.0001",
+        "periodo": null,
+        "optativo": false,
+        "descricao": "Bancos de Dados",
+        "qtd_avaliacoes": 2,
+        "descricao_historico": "Bancos de Dados"
+    },
+    "professores": [
+    ]
+}
+
+
+### Apenas os atributos os obrigatórios
+GET http://integrador/api/baixar_notas/?campus_sigla=EAD&diario_id=2 HTTP/1.1
+Authentication: Token changeme

@@ -1,19 +1,39 @@
 {
   "categories": {
-    "update_fields": [],
+    "update_fields": [
+      "name",
+      "description",
+      "descriptionformat",
+      "visible",
+      "theme"
+    ],
     "list": [
       {
-        "idnumber": "asdf1",
-        "name": ""
+        "idnumber": "diarios",
+        "name": "Diários"
       },
       {
-        "idnumber": "adsf134",
-        "name": "",
-        "description": "",
-        "descriptionformat": 0,
-        "visible": 1,
-        "theme": "",
-        "parent_idnumber": "asdf1"
+        "parent_idnumber": "diarios",
+        "idnumber": "ZL",
+        "name": "CAMPUS AVANÇADO NATAL-ZONA LESTE"
+      },
+      {
+        "parent_idnumber": "ZL",
+        "idnumber": "15806",
+        "name": "Tecnologia em Sistemas para Internet"
+      },
+      {
+        "parent_idnumber": "15806",
+        "idnumber": "15806.2025.2",
+        "name": "2025.2"
+      },
+      {
+        "parent_idnumber": "15806.2025.2",
+        "idnumber": "20252.1.15806.448.1E",
+        "name": "20252.1.15806.448.1E",
+        "description": "Diários\n<br>da turma 20252.1.15806.448.1E,\n<br>do curso Tecnologia em Sistemas para Internet,\n<br>do campus CAMPUS AVANÇADO NATAL-ZONA LESTE.\n<br>Atualizado!",
+        "descriptionformat": 1,
+        "visible": 1
       }
     ]
   },

@@ -1,4 +1,18 @@
 <?php
+// This file is part of "Moodle SGA Integration"
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * SGA Integration
@@ -8,7 +22,7 @@
  *
  * @package     tool_sga
  * @category    upgrade
- * @copyright   2020 Kelson Medeiros <kelsoncm@gmail.com>
+ * @copyright   2025 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -52,47 +66,15 @@ class sga_admin_settingspage extends admin_settingpage
         global $CFG;
         if ($admin_mode) {
             $default_enrol = is_dir(dirname(__FILE__) . '/../../enrol/suap/') ? 'suap' : 'manual';
-            $this->add_heading('auth_token_header');
-            $this->add_configtext("auth_token", 'changeme');
-
-            $this->add_heading('top_category_header');
-            $this->add_configtext("top_category_idnumber", 'diarios');
-            $this->add_configtext("top_category_name", 'Diários');
-            $this->add_configtext("top_category_parent", '0');
+            $this->add_heading('integration_token_header');
+            $this->add_configtext("integration_token", 'changeme');
+            $this->add_configtext("integration_callback", '');
 
             $this->add_heading('user_and_enrolment_header');
             $this->add_configtextarea("default_user_preferences", "auth_forcepasswordchange=0\nhtmleditor=0\nemail_bounce_count=1\nemail_send_count=1\nvisual_preference=1");
 
-            $this->add_configtext("default_student_auth", 'oauth2');
-            $this->add_configtext("default_student_role_id", 5);
-            $this->add_configtext("default_student_enrol_type", $default_enrol);
-
-            $this->add_configtext("default_teacher_auth", 'oauth2');
-            $this->add_configtext("default_teacher_role_id", 3);
-            $this->add_configtext("default_teacher_enrol_type", $default_enrol);
-
-            $this->add_configtext("default_assistant_auth", 'oauth2');
-            $this->add_configtext("default_assistant_role_id", 4);
-            $this->add_configtext("default_assistant_enrol_type", $default_enrol);
-
-            $this->add_configtext("default_instructor_auth", 'oauth2');
-            $this->add_configtext("default_instructor_role_id", 4);
-            $this->add_configtext("default_instructor_enrol_type", $default_enrol);
-
             $this->add_heading('notes_to_sync_header');
             $this->add_configtext("notes_to_sync", "'N1', 'N2', 'N3' , 'N4', 'NAF'");
-
-            $this->add_heading('groups_in_course_header');
-            $this->add_configcheckbox("course_group_entrada", 1);
-            $this->add_configcheckbox("course_group_turma", 1);
-            $this->add_configcheckbox("course_group_polo", 1);
-            $this->add_configcheckbox("course_group_programa", 1);
-
-            $this->add_heading('groups_in_room_header');
-            $this->add_configcheckbox("room_group_entrada", 1);
-            $this->add_configcheckbox("room_group_turma", 1);
-            $this->add_configcheckbox("room_group_polo", 1);
-            $this->add_configcheckbox("room_group_programa", 1);
         }
     }
 }

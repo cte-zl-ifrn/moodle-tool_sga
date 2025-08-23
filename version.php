@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - https://moodle.org/
+// This file is part of "Moodle SGA Integration"
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  * Plugin version and other meta-data are defined here.
  *
  * @package     tool_sga
- * @copyright   2024 IFRN
+ * @copyright   2025 IFRN
  * @author      Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,8 +27,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'tool_sga';
-$plugin->release = '0.1.002';
-$plugin->version = 20250808002;
+$plugin->release = '0.1.005';
+$plugin->version = 20250822005;
 $plugin->maturity = MATURITY_STABLE;
 
 $plugin->requires = 2020061525; # 3.9.25, php >= 7.4
