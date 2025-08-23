@@ -114,38 +114,11 @@ class sync_up_enrolments_service extends service
         $prefix = "{$CFG->wwwroot}/course/view.php";
 
         $this->sync_categories();
+        // $this->sync_users();
         $this->sync_courses();
-
-        /*
-        $this->sync_auths();
-        $this->sync_users();
-
-        $this->isRoom = false;
-        $this->sync_course($this->turmaCategory->id);
-        */
-
-        /*
-        $this->diario = $this->course;
-        $this->sync_enrols();
-        $this->sync_docentes_enrol();
-        $this->sync_discentes_enrol();
-        if ($addMembers) {
-            $this->sync_groups();
-        }
-        $this->sync_cohorts(); // só existe em diário
-
-        $this->isRoom = true;
-        $this->sync_course($this->cursoCategory->id);
-        */
-        /*
-        $this->coordenacao = $this->course;
-        $this->sync_enrols();
-        $this->sync_docentes_enrol();
-        $this->sync_discentes_enrol();
-        if ($addMembers) {
-            $this->sync_groups();
-        }
-        */
+        // $this->sync_enrols();
+        // $this->sync_groups();
+        // $this->sync_cohorts();
 
         return $this->urls;
     }
@@ -248,7 +221,7 @@ class sync_up_enrolments_service extends service
         }
     }
 
-    
+
     function sync_courses() {
         global $DB, $CFG;
         $prefix = "{$CFG->wwwroot}/course/view.php";
@@ -325,40 +298,138 @@ class sync_up_enrolments_service extends service
         }
     }
 
-    /*
-    function sync_oauth_issuer() {
-        $this->sgaIssuer = create_or_update(
-            'oauth2_issuer',
-            [
-                'name' => 'sga'
-            ],
-            [
-                'image' => 'https://ead.ifrn.edu.br/portal/wp-content/uploads/2020/08/SGA.png',
-                'loginscopes' => 'identificacao email',
-                'loginscopesoffline' => 'identificacao email documentos_pessoais',
-                'baseurl' => '',
-                'loginparams' => '',
-                'loginparamsoffline' => '',
-                'alloweddomains' => '',
-                'enabled' => 1,
-                'showonloginpage' => 1,
-                'basicauth' => 0,
-                'sortorder' => 0,
-                'timecreated' => time(),
-                'timemodified' => time(),
-                'usermodified' => 2
-            ],
-            [
-                'requireconfirmation' => 0
-            ],
-            [
-                'clientid' => 'changeme',
-                'clientsecret' => 'changeme'
-            ]
-        );
+
+    function sync_users() {
+        global $CFG, $DB;
+        
+        if (!isset($this->json->users->list)) {
+            return;
+        }
+
+        $i = 0;
+        foreach ($this->json->users->list as $user) {
+            if (!isset($course->idnumber)) {
+                throw new \Exception("O user #{$i} veio sem o atributo 'idnumber', favor corrigir.");
+            }
+            if (!isset($course->firstname)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'firstname', favor corrigir.");
+            }
+            if (!isset($course->lastname)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'lastname', favor corrigir.");
+            }
+            if (!isset($course->username)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'username', favor corrigir.");
+            }
+            if (!isset($course->email)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'email', favor corrigir.");
+            }
+            if (!isset($course->auth)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'auth', favor corrigir.");
+            }
+            if (!isset($course->password)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'password', favor corrigir.");
+            }
+            if (!isset($course->lang)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'lang', favor corrigir.");
+            }
+            if (!isset($course->lang)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'lang', favor corrigir.");
+            }
+            if (!isset($course->category_idnumber)) {
+                throw new \Exception("O curso #{$i} veio sem o atributo 'category_idnumber', favor corrigir.");
+            }
+            $user_on_db = $DB->get_record('course', ['idnumber' => $course->idnumber]) ?: $DB->get_record('course', ['shortname' => $course->shortname]);
+
+            // "confirmed": 0,
+            // "suspended": 0,
+            // "profile_customfield1": "profile_customfield1",
+            // "active": false
+
+            $status = strtolower($usuario->isAluno ? $usuario->situacao : $usuario->status);
+            $suspended = $status == 'ativo' ? 0 : 1;
+
+            $nome_parts = explode(' ', $usuario->nome);
+            $firstname = $nome_parts[0];
+            $lastname = implode(' ', array_slice($nome_parts, 1));
+
+            if ($usuario->isAluno) {
+                $auth = $this->studentAuth;
+            } else {
+                $auth = $usuario->tipo == 'Principal' ? $this->teacherAuth : $this->assistantAuth;
+            }
+
+            $insert_only = ['username' => $username, 'password' => '!aA1' . uniqid(), 'timezone' => '99', 'confirmed' => 1, 'mnethostid' => 1];
+            $insert_or_update = ['firstname' => $firstname, 'lastname' => $lastname, 'auth' => $auth, 'email' => $email, 'suspended' => $suspended];
+
+            $usuario->user = $DB->get_record("user", ["username" => $username]);
+            if ($usuario->user) {
+                \user_update_user(array_merge(['id' => $usuario->user->id], $insert_or_update));
+            } else {
+                \user_create_user(array_merge($insert_or_update, $insert_only));
+                $usuario->user = $DB->get_record("user", ["username" => $username]);
+                foreach (preg_split('/\r\n|\r|\n/', $this->default_user_preferences) as $preference) {
+                    $parts = explode("=", $preference);
+                    \set_user_preference($parts[0], $parts[1], $usuario->user);
+                }
+
+                get_or_create(
+                    'auth_oauth2_linked_login',
+                    ['userid' => $usuario->user->id, 'issuerid' => $this->sgaIssuer->id, 'username' => $username],
+                    ['email' => $email, 'timecreated' => time(), 'usermodified' => 0, 'confirmtoken' => '', 'confirmtokenexpires' => 0, 'timemodified' => time()],
+                );
+            }
+
+            if ($usuario->isAluno) {
+                $custom_fields = [
+                    'programa_nome' => isset($usuario->programa) ? $usuario->programa : "Institucional",
+                    'curso_descricao' => $this->json->curso->nome,
+                    'curso_codigo' => $this->json->curso->codigo
+                ];
+                if (property_exists($usuario, 'polo')) {
+                    $custom_fields['polo_id'] = property_exists($usuario->polo, 'id') ? $usuario->polo->id : null;
+                    $custom_fields['polo_nome'] = property_exists($usuario->polo, 'descricao') ? $usuario->polo->descricao : null;
+                }
+                \profile_save_custom_fields($usuario->user->id, $custom_fields);
+            }
+
+
+
+
+
+
+
+
+            if (!$user) {
+                $data = [
+                    "idnumber" => $course_on_db->idnumber,
+                    "shortname" => $course_on_db->shortname,
+                    "fullname" => $course_on_db->fullname,
+                    "category" => $category_on_db->id,
+
+                    "visible" => isset($course_on_db->visible) ? $course_on_db->visible : 0,
+                    "enablecompletion" => isset($course_on_db->enablecompletion) ? $course_on_db->enablecompletion : 0,
+                    "showreports" => isset($course_on_db->showreports) ? $course_on_db->showreports : 1,
+                    "completionnotify" => isset($course_on_db->completionnotify) ? $course_on_db->completionnotify : 1,
+
+                    // "customfield_campus_id" => $this->json->campus->id,
+                ];
+                $course_on_db = create_course((object)$data);
+                $course_on_db->context = \context_course::instance($course_on_db->id);
+            } elseif (isset($this->json->courses->update_fields)) {
+                $update_fields = $this->json->courses->update_fields;
+                if (in_array('idnumber', $update_fields)) {
+                    throw new Exception("Não é possível atualizar o 'idnumber'.", 1);
+                }
+                update_course($course_on_db);
+                $course_on_db->context = \context_course::instance($course_on_db->id);
+            }
+
+            $this->user[$course_on_db->idnumber] = $course_on_db;
+        }
     }
 
 
+    /*
     function sync_auths() {
         global $DB;
 
@@ -366,74 +437,6 @@ class sync_up_enrolments_service extends service
         $this->teacherAuth = config('default_teacher_auth');
         $this->assistantAuth = config('default_assistant_auth');
         $this->default_user_preferences = config('default_user_preferences');
-    }
-
-
-    function sync_users() {
-        global $CFG, $DB;
-
-        $professores = isset($this->json->professores) ? $this->json->professores : [];
-        $alunos = isset($this->json->alunos) ? $this->json->alunos : [];
-
-        foreach (array_merge($professores, $alunos) as $usuario) {
-            $usuario->isProfessor = isset($usuario->login);
-            $usuario->isAluno = isset($usuario->matricula);
-            $this->sync_user($usuario);
-        }
-    }
-
-
-    function sync_user($usuario) {
-        global $DB;
-
-        $username = $usuario->isAluno ? $usuario->matricula : $usuario->login;
-        $email = !empty($usuario->email) ? $usuario->email : $usuario->email_secundario;
-        $status = strtolower($usuario->isAluno ? $usuario->situacao : $usuario->status);
-        $suspended = $status == 'ativo' ? 0 : 1;
-
-        $nome_parts = explode(' ', $usuario->nome);
-        $firstname = $nome_parts[0];
-        $lastname = implode(' ', array_slice($nome_parts, 1));
-
-        if ($usuario->isAluno) {
-            $auth = $this->studentAuth;
-        } else {
-            $auth = $usuario->tipo == 'Principal' ? $this->teacherAuth : $this->assistantAuth;
-        }
-
-        $insert_only = ['username' => $username, 'password' => '!aA1' . uniqid(), 'timezone' => '99', 'confirmed' => 1, 'mnethostid' => 1];
-        $insert_or_update = ['firstname' => $firstname, 'lastname' => $lastname, 'auth' => $auth, 'email' => $email, 'suspended' => $suspended];
-
-        $usuario->user = $DB->get_record("user", ["username" => $username]);
-        if ($usuario->user) {
-            \user_update_user(array_merge(['id' => $usuario->user->id], $insert_or_update));
-        } else {
-            \user_create_user(array_merge($insert_or_update, $insert_only));
-            $usuario->user = $DB->get_record("user", ["username" => $username]);
-            foreach (preg_split('/\r\n|\r|\n/', $this->default_user_preferences) as $preference) {
-                $parts = explode("=", $preference);
-                \set_user_preference($parts[0], $parts[1], $usuario->user);
-            }
-
-            get_or_create(
-                'auth_oauth2_linked_login',
-                ['userid' => $usuario->user->id, 'issuerid' => $this->sgaIssuer->id, 'username' => $username],
-                ['email' => $email, 'timecreated' => time(), 'usermodified' => 0, 'confirmtoken' => '', 'confirmtokenexpires' => 0, 'timemodified' => time()],
-            );
-        }
-
-        if ($usuario->isAluno) {
-            $custom_fields = [
-                'programa_nome' => isset($usuario->programa) ? $usuario->programa : "Institucional",
-                'curso_descricao' => $this->json->curso->nome,
-                'curso_codigo' => $this->json->curso->codigo
-            ];
-            if (property_exists($usuario, 'polo')) {
-                $custom_fields['polo_id'] = property_exists($usuario->polo, 'id') ? $usuario->polo->id : null;
-                $custom_fields['polo_nome'] = property_exists($usuario->polo, 'descricao') ? $usuario->polo->descricao : null;
-            }
-            \profile_save_custom_fields($usuario->user->id, $custom_fields);
-        }
     }
 
     function sync_enrols() {

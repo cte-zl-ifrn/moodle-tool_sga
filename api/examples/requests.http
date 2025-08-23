@@ -37,6 +37,23 @@ Authentication: Token changeme
         "visible": 1
       }
     ]
+  },
+  "courses": {
+    "update_fields": [],
+    "list": [
+      {
+        "idnumber": "20252.1.15806.448.2E.TEC.1018#123456",
+        "shortname": "20252.1.15806.448.2E.TEC.1018#123456",
+        "fullname": "Leitura e Produção de Textos Acadêmicos e de Divulgação Científica",
+        "category_idnumber": "20252.1.15806.448.1E"
+      },
+      {
+        "idnumber": "ZL.15806",
+        "shortname": "ZL.15806",
+        "fullname": "Sala da Coordenação do Curso de Tecnologia em Sistemas para Internet",
+        "category_idnumber": "15806"
+      }
+    ]
   }
 }
 
@@ -78,6 +95,36 @@ Authentication: Token changeme
       }
     ]
   },
+  "users": {
+    "synchronous": false,
+    "update_fields": ["firstname", "lastname", "email", "auth", "active"],
+    "list": [
+      {
+        "idnumber": "idnumber",
+        "firstname": "firstname",
+        "lastname": "lastname",
+        "username": "username",
+        "email": "",
+        "auth": "",
+        "password": "",
+        "phone1": "",
+        "phone2": "",
+        "institution": "",
+        "department": "",
+        "address": "",
+        "city": "",
+        "country": "",
+        "lang": "",
+        "calendartype": "",
+        "theme": "",
+        "timezone": "",
+        "confirmed": 0,
+        "suspended": 0,
+        "profile_customfield1": "profile_customfield1",
+        "active": false
+      }
+    ]
+  },
   "courses": {
     "update_fields": [],
     "list": [
@@ -94,7 +141,8 @@ Authentication: Token changeme
         "category_idnumber": "15806"
       }
     ]
-  }
+  },
+
 }
 
 ### Desativa o 6 pois deixou de vir
