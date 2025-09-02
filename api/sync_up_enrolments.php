@@ -109,20 +109,21 @@ class sync_up_enrolments_service extends service
     }
 
 
-    function process($jsonstring, $addMembers) {
+    function process($jsonstring, $assync) {
         global $CFG;
         $prefix = "{$CFG->wwwroot}/course/view.php";
 
         $this->sync_categories();
-        // $this->sync_users();
         $this->sync_courses();
-        // $this->sync_enrols();
-        // $this->sync_groups();
-        // $this->sync_cohorts();
+        if ($assync) {
+            // $this->sync_users();
+            // $this->sync_enrols();
+            // $this->sync_groups();
+            // $this->sync_cohorts();
+        }
 
         return $this->urls;
     }
-
 
     function get_category_by_idnumber($idnumber) {
         global $DB;
@@ -232,73 +233,51 @@ class sync_up_enrolments_service extends service
 
         $i = 0;
         foreach ($this->json->courses->list as $course) {
-            if (!isset($course->idnumber)) {
-                throw new \Exception("O curso #{$i} veio sem o atributo 'idnumber', favor corrigir.");
+            $course_as_array = (array)$course;
+            if (isset($course->category)) {
+                throw new \Exception("O curso #{$i} NÃO PODE ter o atributo 'category', deveria ser 'category_idnumber', favor corrigir.");
             }
-            if (!isset($course->shortname)) {
-                throw new \Exception("O curso #{$i} veio sem o atributo 'shortname', favor corrigir.");
+            foreach (['category_idnumber', 'fullname', 'shortname', 'idnumber'] as $fieldname) {
+                if (!isset($course->fullname)) {
+                    throw new \Exception("O curso #{$i} TEM QUE TER o atributo 'fullname', favor corrigir.");
+                }
             }
-            if (!isset($course->fullname)) {
-                throw new \Exception("O curso #{$i} veio sem o atributo 'fullname', favor corrigir.");
-            }
-            if (!isset($course->category_idnumber)) {
-                throw new \Exception("O curso #{$i} veio sem o atributo 'category_idnumber', favor corrigir.");
+            foreach (['id', 'sortorder', 'originalcourseid', 'timecreated', 'timemodified'] as $fieldname) {
+                if (isset($course->$fieldname)) {
+                    throw new \Exception("O curso #{$i} NÃO PODE ter o atributo '{$fieldname}', favor corrigir.");
+                }
             }
             $course_on_db = $DB->get_record('course', ['idnumber' => $course->idnumber]) ?: $DB->get_record('course', ['shortname' => $course->shortname]);
             $category_on_db = $this->get_category_by_idnumber($course->category_idnumber);
 
             if (!$course) {
-                $data = [
-                    "idnumber" => $course_on_db->idnumber,
-                    "shortname" => $course_on_db->shortname,
-                    "fullname" => $course_on_db->fullname,
-                    "category" => $category_on_db->id,
-
-                    "visible" => isset($course_on_db->visible) ? $course_on_db->visible : 0,
-                    "enablecompletion" => isset($course_on_db->enablecompletion) ? $course_on_db->enablecompletion : 0,
-                    "showreports" => isset($course_on_db->showreports) ? $course_on_db->showreports : 1,
-                    "completionnotify" => isset($course_on_db->completionnotify) ? $course_on_db->completionnotify : 1,
-
-                    // "customfield_campus_id" => $this->json->campus->id,
-                ];
-                $course_on_db = create_course((object)$data);
-                $course_on_db->context = \context_course::instance($course_on_db->id);
+                foreach (['category_idnumber', 'fullname', 'shortname', 'idnumber'] as $fieldname) {
+                    unset($course_as_array[$fieldname]);
+                }
+                $course_on_db = create_course((object)$course_as_array);
             } elseif (isset($this->json->courses->update_fields)) {
                 $update_fields = $this->json->courses->update_fields;
                 if (in_array('idnumber', $update_fields)) {
                     throw new Exception("Não é possível atualizar o 'idnumber'.", 1);
                 }
-                if (in_array('shortname', $update_fields)) {
-                    $course_on_db->shortname = $course->shortname;
+
+                $course_on_db_as_array = (array)$course_on_db;
+                foreach ($course_as_array as $key => $value) {
+                    if (in_array('', $update_fields)) {
+                        $course_on_db_as_array[$key] = $value;
+                    }
                 }
-                if (in_array('fullname', $update_fields)) {
-                    $course_on_db->fullname = $course->fullname;
-                }
-                if (in_array('category', $update_fields) && $course->category) {
-                    $course_on_db->category = $category_on_db->id;
-                }
-                if (in_array('visible', $update_fields) && $course->visible) {
-                    $course_on_db->visible = $course->visible;
-                }
-                if (in_array('enablecompletion', $update_fields) && $course->enablecompletion) {
-                    $course_on_db->enablecompletion = $course->enablecompletion;
-                }
-                if (in_array('showreports', $update_fields) && $course->showreports) {
-                    $course_on_db->showreports = $course->showreports;
-                }
-                if (in_array('completionnotify', $update_fields) && $course->completionnotify) {
-                    $course_on_db->completionnotify = $course->completionnotify;
-                }
+                $course_on_db = (object)$course_on_db_as_array;
                 update_course($course_on_db);
-                $course_on_db->context = \context_course::instance($course_on_db->id);
             }
 
+            $course_on_db->context = \context_course::instance($course_on_db->id);
             $this->courses[$course_on_db->idnumber] = $course_on_db;
             $this->urls[$course_on_db->idnumber] = "$prefix?id={$course_on_db->id}";
         }
     }
 
-
+    /*
     function sync_users() {
         global $CFG, $DB;
         
@@ -429,16 +408,6 @@ class sync_up_enrolments_service extends service
     }
 
 
-    /*
-    function sync_auths() {
-        global $DB;
-
-        $this->studentAuth = config('default_student_auth');
-        $this->teacherAuth = config('default_teacher_auth');
-        $this->assistantAuth = config('default_assistant_auth');
-        $this->default_user_preferences = config('default_user_preferences');
-    }
-
     function sync_enrols() {
         $this->professor_enrol = $this->get_enrolment_config('teacher');
         $this->tutor_enrol = $this->get_enrolment_config('assistant');
@@ -487,6 +456,7 @@ class sync_up_enrolments_service extends service
             }
         }
     }
+
 
     function sync_discentes_enrol() {
         global $CFG, $DB;
@@ -565,6 +535,7 @@ class sync_up_enrolments_service extends service
         }
     }
 
+
     function sync_group($group_name) {
         global $DB;
         $data = ['courseid' => $this->course->id, 'name' => $group_name];
@@ -575,6 +546,7 @@ class sync_up_enrolments_service extends service
         }
         return $group;
     }
+
 
     function getIdDosAlunosFaltandoAgrupar($group, $alunos) {
         global $DB;
@@ -588,6 +560,7 @@ class sync_up_enrolments_service extends service
             return $x->userid;
         }, $ja_existem);
     }
+
 
     function sync_cohorts() {
         global $DB;
@@ -645,6 +618,16 @@ class sync_up_enrolments_service extends service
             }
         }
     }
+
+    function sync_auths() {
+        global $DB;
+
+        $this->studentAuth = config('default_student_auth');
+        $this->teacherAuth = config('default_teacher_auth');
+        $this->assistantAuth = config('default_assistant_auth');
+        $this->default_user_preferences = config('default_user_preferences');
+    }
+
 */
 
     function insertSyncDB($jsonstring) {
