@@ -2,6 +2,12 @@
 
 > Reescrever
 
+## curl example
+
+````bash
+curl -X POST -H "Authentication: Token changeme" -d @admin/tool/sga/api/examples/sync_up.request-cats-and-courses.json http://moodle/admin/tool/sga/api/\?sync_up_enrolments
+```
+
 ## Tipo de commits
 
 - `feat:` novas funcionalidades.
