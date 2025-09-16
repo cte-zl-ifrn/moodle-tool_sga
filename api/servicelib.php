@@ -49,8 +49,15 @@ class service
 
     function call()
     {
-        $this->authenticate();
-        echo json_encode($this->do_call());
+        try {
+            $this->authenticate();
+            $data = $this->do_call();
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } catch (\Exception $e) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(["error"=> $e->getMessage()], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
     }
 
     function do_call()
