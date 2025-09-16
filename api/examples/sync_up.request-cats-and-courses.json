@@ -1,0 +1,96 @@
+{
+  "categories": {
+    "update_fields": [
+      "name",
+      "description",
+      "descriptionformat",
+      "visible",
+      "theme"
+    ],
+    "list": [
+      {
+        "idnumber": "modelos",
+        "name": "Modelos"
+      },
+      {
+        "parent_idnumber": "modelos",
+        "idnumber": "modelos.ZL",
+        "name": "CAMPUS AVANÇADO NATAL-ZONA LESTE"
+      },
+      {
+        "parent_idnumber": "modelos.ZL",
+        "idnumber": "modelos.ZL.15806",
+        "name": "Tecnologia em Sistemas para Internet"
+      },
+      {
+        "parent_idnumber": "modelos.ZL.15806",
+        "idnumber": "modelos.ZL.15806.2025.2",
+        "name": "2025.2"
+      },
+      {
+        "parent_idnumber": "modelos.ZL.15806.2025.2",
+        "idnumber": "modelos.ZL.20252.1.15806.448.1E",
+        "name": "modelos.ZL.20252.1.15806.448.1E",
+        "description": "Diários\n<br>da turma 20252.1.15806.448.1E,\n<br>do curso Tecnologia em Sistemas para Internet,\n<br>do campus CAMPUS AVANÇADO NATAL-ZONA LESTE.\n<br>Atualizado!",
+        "descriptionformat": 1,
+        "visible": 1
+      },
+      {
+        "idnumber": "diarios",
+        "name": "Diários"
+      },
+      {
+        "parent_idnumber": "diarios",
+        "idnumber": "ZL",
+        "name": "CAMPUS AVANÇADO NATAL-ZONA LESTE"
+      },
+      {
+        "parent_idnumber": "ZL",
+        "idnumber": "ZL.15806",
+        "name": "Tecnologia em Sistemas para Internet"
+      },
+      {
+        "parent_idnumber": "ZL.15806",
+        "idnumber": "ZL.15806.2025.2",
+        "name": "2025.2"
+      },
+      {
+        "parent_idnumber": "ZL.15806.2025.2",
+        "idnumber": "ZL.20252.1.15806.448.1E",
+        "name": "ZL.20252.1.15806.448.1E",
+        "description": "Diários\n<br>da turma 20252.1.15806.448.1E,\n<br>do curso Tecnologia em Sistemas para Internet,\n<br>do campus CAMPUS AVANÇADO NATAL-ZONA LESTE.\n<br>Atualizado!",
+        "descriptionformat": 1,
+        "visible": 1
+      }
+    ]
+  },
+  "courses": {
+    "update_fields": [],
+    "list": [
+      {
+        "idnumber": "modelos-TEC.1018",
+        "shortname": "modelos-TEC.1018",
+        "fullname": "Leitura e Produção de Textos Acadêmicos e de Divulgação Científica (Modelo)",
+        "category_idnumber": "modelos"
+      },
+      {
+        "idnumber": "20252.1.15806.448.2E.TEC.1018#123456",
+        "shortname": "20252.1.15806.448.2E.TEC.1018#123456",
+        "fullname": "Leitura e Produção de Textos Acadêmicos e de Divulgação Científica",
+        "category_idnumber": "20252.1.15806.448.1E",
+        "modelo_path": [
+          "modelos.ZL.15806-TEC.1018",
+          "modelos.ZL-TEC.1018",
+          "modelos.15806-TEC.1018",
+          "modelos-TEC.1018"
+        ]
+      },
+      {
+        "idnumber": "ZL.15806",
+        "shortname": "ZL.15806",
+        "fullname": "Sala da Coordenação do Curso de Tecnologia em Sistemas para Internet",
+        "category_idnumber": "15806"
+      }
+    ]
+  }
+}
