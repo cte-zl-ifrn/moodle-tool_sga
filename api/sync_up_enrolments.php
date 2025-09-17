@@ -307,10 +307,11 @@ class sync_up_enrolments_service extends service {
             // $this->sync_groups();
         }
 
-        $erros = count($this->errors) > 0 ? ['erros'=>$this->errors] : [];
-        $successes = count($this->errors) > 0 ? ['successes'=>$this->successes] : [];
-
-        return array_merge(["urls"=>$this->urls], $erros, $successes);
+        return [
+            "urls"=>$this->urls,
+            'erros'=>$this->errors,
+            'successes'=>$this->successes,
+        ];
     }
 
 
