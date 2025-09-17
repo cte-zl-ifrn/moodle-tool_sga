@@ -123,7 +123,12 @@ trait sync_up_enrolments_helper {
             return $this->categories[$idnumber];
         }
 
-        $this->categories[$idnumber] = $DB->get_record('course_categories', ['idnumber' => $idnumber]);
+        $cat = $DB->get_record('course_categories', ['idnumber' => $idnumber]);
+        if (!$cat) {
+            return null;
+        }
+
+        $this->categories[$idnumber] = \core_course_category::get($cat->id);
         return $this->categories[$idnumber];
     }
 
@@ -148,13 +153,18 @@ trait sync_up_enrolments_helper {
     function get_user_by_username($username) {
         global $DB;
 
-        if (in_arra($username, $this->users)) {
+        if (array_key_exists($username, $this->users)) {
             return $this->users[$username];
         }
 
-        $this->users[$username] = $DB->get_record('course', ['username' => $username]);
-        $this->users[$username]->context = \context_course::instance($this->users[$username]->id);
+        $user = $DB->get_record('user', ['username' => $username]);
+        if (!$user) {
+            return null;
+        }
+        $user->context = \context_user::instance($user->id);
+        $this->users[$username] = $user;
         return $this->users[$username];
+
     }
 
     function check_required_fields($object, $required_fields, $object_name, $object_index_at_list) {
@@ -170,12 +180,12 @@ trait sync_up_enrolments_helper {
     }
 
     function set_updatable_fields($object, $data, $updatable_fields) {
-        foreach ($data as $fieldname => $value) {
-            if (in_array('idnumber', $updatable_fields)) {
-                throw new Exception("Não é possível atualizar o 'idnumber'.");
+        foreach ($updatable_fields as $fieldname) {
+            if ($fieldname === 'idnumber') {
+                throw new \Exception("Não é possível atualizar o 'idnumber'.");
             }
 
-            if (in_array($fieldname, $updatable_fields) && property_exists($object, $fieldname)) {
+            if (property_exists($object, $fieldname)) {
                 $data[$fieldname] = $object->$fieldname;
             }
         }
@@ -187,7 +197,7 @@ trait sync_up_enrolments_helper {
 
         foreach ($banned_fields as $fieldname) {
             if (isset($object->$fieldname)) {
-                throw new \Exception("Não é permitido atualizar o atributo '{$fieldname}' do '$object_name' #{$object_index_at_listi}, favor corrigir.");
+                throw new \Exception("Não é permitido atualizar o atributo '{$fieldname}' do '$object_name' #{$object_index_at_list}, favor corrigir.");
             }
         }
         if ($error != "") {
@@ -205,18 +215,70 @@ trait sync_up_enrolments_helper {
         }
         return $parent->id;
     }
-}
 
+    function get_template_course($course) {
+        $candidate_templates = array_filter($course->template_path, fn($idn) => $this->get_course_by_idnumber($idn));
+        $candidate_template = array_values($candidate_templates)[0] ?? null;
+        return $this->get_course_by_idnumber($candidate_template);
+    }
+
+    function backup_template($template_course) {
+        # Backup do template
+        $bc = new \backup_controller(
+            \backup::TYPE_1COURSE, 
+            $template_course->id, 
+            \backup::FORMAT_MOODLE,
+            \backup::INTERACTIVE_NO,
+            \backup::MODE_GENERAL,
+            // \backup::MODE_IMPORT,
+            get_admin()->id
+        );
+        $filename = \backup_plan_dbops::get_default_backup_filename($bc->get_format(), $bc->get_type(), $bc->get_id(), false, true);
+        $bc->get_plan()->get_setting('filename')->set_value($filename);
+        $bc->execute_plan();
+        $result = $bc->get_results();
+        $bc->destroy();
+        return ($bc->get_status() == \backup::STATUS_FINISHED_OK) ? $result : false;
+    }
+
+    function restore_into_course($backupfile, $course) {
+        $backupdir = \restore_controller::get_tempdir_name(SITEID, get_admin()->id);
+        $path = make_backup_temp_directory($backupdir);
+        $backupfile->copy_content_to("$path/kkk");
+        $fp = get_file_packer('application/vnd.moodle.backup');
+        $fp->extract_to_pathname("$path/kkk", $path);
+
+        $rc = new \restore_controller(
+            $backupdir,
+            $course->id,
+            \backup::INTERACTIVE_NO,
+            \backup::MODE_GENERAL,
+            get_admin()->id,
+            \backup::TARGET_EXISTING_ADDING
+        );
+
+        if ($rc->execute_precheck()) {
+            try {
+                $rc->execute_plan();
+                return true;
+            } catch (\Throwable $th) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+        $rc->destroy();
+    }
+}
 
 class sync_up_enrolments_service extends service {
 
     use sync_up_enrolments_helper;
 
 
-    private $urls = [
-        "categories" => [],
-        "courses" => []
-    ];
+    private $urls = ["categories" => [], "courses" => []];
+    private $errors = [];
+    private $successes = [];
     private $json;
 
 
@@ -237,15 +299,18 @@ class sync_up_enrolments_service extends service {
         $this->validate_json($jsonstring);
         $this->sync_categories();
         $this->sync_courses();
-        if ($assync) {
-            // $this->restore_courses_backup();
+        if (!$assync) {
+            $this->import_template_courses_backup();
             // $this->sync_users();
             // $this->sync_cohorts();
             // $this->sync_enrols();
             // $this->sync_groups();
         }
 
-        return $this->urls;
+        $erros = count($this->errors) > 0 ? ['erros'=>$this->errors] : [];
+        $successes = count($this->errors) > 0 ? ['successes'=>$this->successes] : [];
+
+        return array_merge(["urls"=>$this->urls], $erros, $successes);
     }
 
 
@@ -259,7 +324,7 @@ class sync_up_enrolments_service extends service {
             $this->check_required_fields($category, ['idnumber', 'name'], 'categoria', $i);
 
             $category_on_db = $this->get_category_by_idnumber($category->idnumber);
-            if (empty($category_on_db)) {
+            if (!$category_on_db) {
                 $data = [
                     'idnumber' => $category->idnumber,
                     'name' => $category->name,
@@ -279,13 +344,13 @@ class sync_up_enrolments_service extends service {
                 }
 
                 if (count($data) > 0) {
-                    \core_course_category::update($data);
+                    $category_on_db->update($data);
                     unset($this->categories[$category->idnumber]);
-                    
+                    $category_on_db = $this->get_category_by_idnumber($category->idnumber);
                 }
             }
-            $category_on_db = $this->get_category_by_idnumber($category->idnumber);
-            $this->urls['categories'][$category_on_db->idnumber] = "{$CFG->wwwroot}/course/index.php?categoryid={$category_on_db->id}";
+
+            $this->urls['categories'][$category->idnumber] = "{$CFG->wwwroot}/course/index.php?categoryid={$category_on_db->id}";
         }
     }
 
@@ -301,11 +366,13 @@ class sync_up_enrolments_service extends service {
 
             $course_on_db = $this->get_course_by_idnumber($course->idnumber);
             $category_on_db = $this->get_category_by_idnumber($course->category_idnumber);
+            $course->is_new_course = $course_on_db == null;
 
             if ($course_on_db == null) {
                 $course->category = isset($category_on_db->id) ? $category_on_db->id : 1;
                 create_course($course);
                 $course_on_db = $this->get_course_by_idnumber($course->idnumber);
+                
             } elseif (isset($this->json->courses->update_fields)) {
                 $data = $this->set_updatable_fields($course, [], $this->json->courses->update_fields);
                 if (count($data) > 0) {
@@ -318,106 +385,30 @@ class sync_up_enrolments_service extends service {
         }
     }
 
-
-    function restore_courses_backup() {
+    function import_template_courses_backup() {
         global $CFG, $DB;
-        $i = 0;
-        foreach ($this->json->courses->list ?? [] as $course) {
-            $i++;
-            if (!isset($course->modelo_path)) {
+
+        $courses_with_templates = array_filter($this->json->courses->list ?? [], function($course) {return isset($course->template_path) && $course->is_new_course;});
+        foreach ($courses_with_templates as $course) {
+            if (!$course_on_db = $this->get_course_by_idnumber($course->idnumber)) {
+                continue;
+            };
+
+            if (!$template_course = $this->get_template_course($course)) {
                 continue;
             }
 
-            $course_on_db = $this->get_course_by_idnumber($course->idnumber);
-
-            foreach ($course->modelo_path as $modelo_idnumber) {
-                $modelo_course = $this->get_course_by_idnumber($modelo_idnumber);
-                if (!$modelo_course) {
-                    continue;
-                }
-
-                # Backup do modelo
-                $bc = new \backup_controller(
-                    \backup::TYPE_1COURSE,
-                    $modelo_course->id,
-                    \backup::FORMAT_MOODLE,
-                    \backup::INTERACTIVE_NO,
-                    \backup::MODE_GENERAL,
-                    get_admin()->id
-                );
-
-                $bc->execute_plan();
-                $results = $bc->get_results();
-                $backupfile = $results['backup_destination'];
-                $bc->destroy();
-
-                # Restauração no curso destino
-                $rc = new \restore_controller(
-                    $bc->get_backupid(),
-                    $course_on_db->id,
-                    \backup::INTERACTIVE_NO,
-                    \backup::MODE_GENERAL,
-                    get_admin()->id,
-                    \backup::TARGET_CURRENT_ADDING
-                );
-
-                if ($rc->execute_precheck()) {
-                //     $rc->execute_plan();
-                     echo "Backup do curso $courseid restaurado com sucesso no curso $targetcourseid.";
-                } else {
-                     echo "Erro na verificação prévia da restauração.";
-                }
-
-                $rc->destroy();
-                die();
+            if (!$backup_result = $this->backup_template($template_course)) {
+                $this->errors[] = "Não foi possível restaurar o modelo {$template_course} para o curso {$course->idnumber}.";
+                continue;
             }
 
-            $this->check_required_fields($course, ['modelo_path'], 'curso', $i);
-
+            if ($this->restore_into_course($backup_result['backup_destination'], $course_on_db)) {
+                $this->successes[] = "Backup do curso $template_course->idnumber ($template_course->id) restaurado com sucesso no curso $course_on_db->idnumber ($course_on_db->id).";
+            } else {
+                $this->errors[] = "Falha na verificação prévia da restauração Backup do curso $template_course->idnumber ($template_course->id) restaurado com sucesso no curso $course_on_db->idnumber ($course_on_db->id).";
+            }
         }
-        /*
-            $course_on_db = $this->get_course_by_idnumber($course->idnumber);
-            if (empty($course_on_db)) {
-                throw new \Exception("O curso com idnumber '{$course->idnumber}' não existe no Moodle, favor corrigir.");
-            }
-
-            if (!file_exists($course->backup_file_path)) {
-                throw new \Exception("O arquivo de backup do curso com idnumber '{$course->idnumber}' não existe no caminho '{$course->backup_file_path}', favor corrigir.");
-            }
-
-            // Start the restore process.
-            $bc = new \backup_controller(
-                \backup::TYPE_1COURSE,
-                $course_on_db->id,
-                \backup::FORMAT_MOODLE,
-                \backup::INTERACTIVE_NO,
-                \backup::MODE_GENERAL,
-                1
-            );
-            $bc->get_plan()->get_setting('filename')->set_value($course->backup_file_path);
-            $bc->execute_plan();
-        }
-
-        /*
-        require_once('../../config.php');
-
-        // Backup do curso
-        $bc = new backup_controller(
-            backup::TYPE_1COURSE,
-            $courseid,
-            backup::FORMAT_MOODLE,
-            backup::INTERACTIVE_NO,
-            backup::MODE_GENERAL,
-            $USER->id
-        );
-
-        $bc->execute_plan();
-        $results = $bc->get_results();
-        $backupfile = $results['backup_destination'];
-        $bc->destroy();
-
-
-        */
     }
 
     function sync_users() {

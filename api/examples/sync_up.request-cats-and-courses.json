@@ -78,7 +78,7 @@
         "shortname": "20252.1.15806.448.2E.TEC.1018#123456",
         "fullname": "Leitura e Produção de Textos Acadêmicos e de Divulgação Científica",
         "category_idnumber": "20252.1.15806.448.1E",
-        "modelo_path": [
+        "template_path": [
           "modelos.ZL.15806-TEC.1018",
           "modelos.ZL-TEC.1018",
           "modelos.15806-TEC.1018",
