@@ -58,7 +58,6 @@ define(
         'trustbitmask',
         'calendartype',
         'lastnamephonetic', 'firstnamephonetic','middlename', 'alternatename',
-        'password',
         'mnethostid', 'moodlenetprofile',
         'theme'
     ]
@@ -74,7 +73,7 @@ define(
     [
         "confirmed", "policyagreed", "deleted", "suspended", "emailstop", 
         "phone1", "phone2", "institution", "department", "address", "city", "country", "lang",
-        'timezone', 'idnumber'
+        'timezone', 'idnumber', "password"
     ]
 );
 
@@ -286,7 +285,7 @@ class sync_up_enrolments_service extends service {
         global $CFG;
         $jsonstring = file_get_contents('php://input');
 
-        $result = $this->process($jsonstring, false);
+        $result = $this->process($jsonstring, true);
         $this->insertSyncDB($jsonstring);
 
         return $result;
@@ -299,9 +298,9 @@ class sync_up_enrolments_service extends service {
         $this->validate_json($jsonstring);
         $this->sync_categories();
         $this->sync_courses();
-        if (!$assync) {
+        if ($assync) {
             $this->import_template_courses_backup();
-            // $this->sync_users();
+            $this->sync_users();
             // $this->sync_cohorts();
             // $this->sync_enrols();
             // $this->sync_groups();
@@ -421,7 +420,8 @@ class sync_up_enrolments_service extends service {
             $this->check_required_fields($user, TOOL_SGA_USERS_REQUIRED_FIELDS, 'user', $i);
             $user_on_db = $this->get_user_by_username($user->username);
             $user_as_array = (array)$user;
-            
+            $novo = empty($user_on_db);
+            $password = isset($user->password) && !empty(trim($user->password)) ? hash_internal_user_password($user->password) : "";
             if (empty($user_on_db)) {
                 $data = [
                     # Required fields
@@ -435,24 +435,25 @@ class sync_up_enrolments_service extends service {
 
                 foreach (TOOL_SGA_USERS_OPTIONAL_FIELDS as $optional_field) {
                     if (isset($user_as_array[$optional_field])) {
-                        if ($optional_field == 'password') {
-                            $user_as_array['password'] = hash_internal_user_password($user->password);
-                        } else {
-                            $data[$optional_field] = $user_as_array[$optional_field];
-                        }
+                        $data[$optional_field] = $user_as_array[$optional_field];
                     }
                 }
 
                 \user_create_user($data);
 
                 $user_on_db = $this->get_user_by_username($user->username);
+
                 $user_on_db->is_new = True;
+
             } elseif (isset($this->json->users->update_fields)) {
                 $data = $this->set_updatable_fields($user, [], $this->json->users->update_fields);
                 if (count($data) > 0) {
-                    if (in_array('password', $data)) {
-                        $data['password'] = hash_internal_user_password($user->password);
+                    if (in_array('password', $data) && $password != "") {
+                        $data['password'] = $password;
+                    } else {
+                        unset($data['password']);
                     }
+
                     $data['id'] = $user_on_db->id;
                     \user_update_user($data);
                     unset($this->users[$user->username]);

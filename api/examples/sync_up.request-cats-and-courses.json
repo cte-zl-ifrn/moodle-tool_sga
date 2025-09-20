@@ -92,5 +92,76 @@
         "category_idnumber": "15806"
       }
     ]
+  },
+  "users": {
+    "synchronous": false,
+    "update_fields": [
+      "firstname",
+      "lastname",
+      "email",
+      "auth",
+      "active"
+    ],
+    "list": [
+      {
+        "idnumber": "user00001",
+        "firstname": "user sem senha",
+        "lastname": "00001",
+        "username": "user00001",
+        "email": "user00001@localhost",
+        "auth": "manual",
+        "confirmed": 1,
+        "suspended": 0,
+        "active": true
+      },
+      {
+        "idnumber": "user00002",
+        "firstname": "user com senaha ''",
+        "lastname": "00002",
+        "username": "user00002",
+        "email": "user00002@localhost",
+        "auth": "manual",
+        "confirmed": 1,
+        "suspended": 0,
+        "password": "",
+        "active": true
+      },
+      {
+        "idnumber": "user00003",
+        "firstname": "user com senha null",
+        "lastname": "00003",
+        "username": "user00003",
+        "email": "user00003@localhost",
+        "auth": "manual",
+        "confirmed": 1,
+        "suspended": 0,
+        "password": null,
+        "active": true
+      },
+      {
+        "idnumber": "user00004",
+        "firstname": "user com senha válida",
+        "lastname": "00004",
+        "username": "user00004",
+        "email": "user00004@localhost",
+        "auth": "manual",
+        "confirmed": 1,
+        "suspended": 0,
+        "password": "letrasLetras1234!@#$",
+        "active": true
+      },
+      {
+        "idnumber": "user00004",
+        "firstname": "user com senha inválida",
+        "lastname": "00004",
+        "username": "user00004",
+        "email": "user00004@localhost",
+        "auth": "manual",
+        "confirmed": 1,
+        "suspended": 0,
+        "password": "asdf",
+        "active": true
+      }
+    ]
   }
 }
