@@ -105,12 +105,12 @@ trait sync_up_enrolments_helper {
         return $this->categories[$idnumber];
     }
 
-    function get_from_cache($bucket, $key, $default_value = null) {
+    function get_from_cache($bucket, $naturalkey, $default_value = null) {
         if (!array_key_exists($bucket, $this->cache)) {
             $this->cache[$bucket] = [];
         }
 
-        return $this->cache[$bucket][$key] ?? $default_value;
+        return $this->cache[$bucket][$naturalkey] ?? $default_value;
     }
     
     function put_into_cache($bucket, $key, $value) {
@@ -125,7 +125,7 @@ trait sync_up_enrolments_helper {
     function get_cached($origin, $naturalkey, $key, $thows_exception_if_not_found = false) {
         global $DB;
 
-        $cached = $this->get_from_cache($origin, $naturalkey);
+        $cached = $this->get_from_cache($origin, $key);
 
         if ($cached) {
             return $cached;
@@ -312,6 +312,25 @@ trait sync_up_enrolments_helper {
             $i++;
         }
     }
+
+    function parse_date($date, $att_name, $dafeult_value = 0) {
+        if (isset($date)) {
+            if (is_string($date)) {
+                if (strtotime($date) === false) {
+                    throw new \Exception("O atributo '$att_name' deve ser uma string com data válida em formato ISO, favor corrigir.");
+                }
+                return strtotime($date);
+            } else if (is_int($to_sync->timestart)) {
+                if ($date < 0) {
+                    throw new \Exception("O atributo '$att_name' deve ser um unix timestamp positivo, favor corrigir.");
+                }
+                return $date;
+            } else {
+                throw new \Exception("O atributo '$att_name' deve ser um inteiro representando um unix timestamp ou uma string com data válida em formato ISO, favor corrigir.");
+            }
+        }
+        return $dafeult_value;
+    }
 }
 
 
@@ -325,6 +344,12 @@ class sync_up_enrolments_service extends service {
         "courses" => [],
         "users" => [],
         "cohorts" => [],
+        "cohorts_members" => [],
+        "enrols" => [],
+        "enrols_cohorts" => [],
+        "enrolments" => [],
+        "groups" => [],
+        "groups_members" => [],
     ];
     private $errors = [];
     private $successes = [];
@@ -352,6 +377,7 @@ class sync_up_enrolments_service extends service {
             $this->import_template_courses_backup();
             $this->sync_users();
             $this->sync_cohorts();
+            $this->sync_cohorts_members();
             $this->sync_enrols();
             $this->sync_groups();
             $this->sync_enrolments();
@@ -414,21 +440,18 @@ class sync_up_enrolments_service extends service {
             ['category_idnumber', 'fullname', 'shortname', 'idnumber'],
             function($course, $i) {
                 $course->naturalkey = $course->idnumber;
-                $catetory_on_db = $this->get_category_by_idnumber($course->category_idnumber);
-                if (!$catetory_on_db) {
-                    throw new \Exception("A categoria com idnumber '{$course->category_idnumber}' não existe, favor corrigir.");
-                }
+                $catetory_on_db = $this->get_cached('course_categories', 'idnumber', $course->category_idnumber, true);
 
                 $on_db = $this->get_cached('course', 'idnumber', $course->idnumber);
                 $course->op = $on_db ? 'UPD' : 'ADD';
                 if ($course->op === 'ADD') {
                     $course->category = $catetory_on_db->id;
-                    create_course($course);
+                    \create_course($course);
                     $on_db = $this->get_cached('course', 'idnumber', $course->idnumber);
                 } elseif (isset($this->json->courses->update_fields)) {
                     $data = $this->set_updatable_fields($course, [], $this->json->courses->update_fields);
                     if (count($data) > 0) {
-                        update_course((object)$data);
+                        \update_course((object)$data);
                         unset($this->courses[$course->idnumber]);
                         $on_db = $this->get_cached('course', 'idnumber', $course->idnumber);
                     }
@@ -475,14 +498,14 @@ class sync_up_enrolments_service extends service {
             ['id', 'timecreated', 'timemodified', 'lastlogin', 'firstaccess', 'lastaccess', 'currentlogin', 'lastip', 'secret', 'description', 'descriptionformat', 'htmleditor', 'mailformat','maildigest', 'maildisplay', 'autosubscribe', 'trackforums', 'trustbitmask', 'calendartype', 'mnethostid', 'moodlenetprofile'],
             ['username', 'auth', 'firstname', 'lastname', 'email', 'password', "active"],
             function($user, $i) {
-                // TODO: o que fazer como picture e imagealt
-                $password = isset($user->password) && !empty(trim($user->password)) ? hash_internal_user_password($user->password) : AUTH_PASSWORD_NOT_CACHED;
+                $password = !empty(trim($user->password ?? "")) ? hash_internal_user_password($user->password) : AUTH_PASSWORD_NOT_CACHED;
 
                 $user->naturalkey = $user->username;
                 $on_db = $this->get_cached('user', 'username', $user->naturalkey);
                 $user->op = $on_db ? 'UPD' : 'ADD';
                 if ($user->op == 'ADD') {
                     $data = (array)$user;
+                    $data['password'] = $password;
                     unset($data['user_preferences']);
                     unset($data['custom_fields']);
 
@@ -513,6 +536,16 @@ class sync_up_enrolments_service extends service {
 
                 if (isset($user->custom_fields)) {
                     \profile_save_custom_fields($on_db->id, (array)($user->custom_fields));
+                }
+
+                if (isset($user->picture) && !empty($user->picture) && $user->picture != $on_db->picture) {
+                    require_once($CFG->dirroot . '/user/profile/lib.php');
+                    $usercontext = \context_user::instance($on_db->id);
+                    $fs = \get_file_storage();
+                    $fs->delete_area_files($usercontext->id, 'user', 'icon');
+                    $user->picture = \profile_save_data($usercontext, 'icon', $user->picture);
+                    $on_db->picture = $user->picture;
+                    $DB->update_record('user', (object)['id' => $on_db->id, 'picture' => $on_db->picture]);
                 }
 
                 $this->urls['users'][$user->naturalkey] = "{$CFG->wwwroot}/user/view.php?id={$on_db->id}";
@@ -546,6 +579,27 @@ class sync_up_enrolments_service extends service {
                 }
                 $this->urls['cohorts'][$to_sync->naturalkey] = "$CFG->wwwroot/cohort/edit.php?id=$on_db->id";
                 return (object)['on_db'=>$on_db, 'to_sync'=>$to_sync, 'naturalkey'=>$to_sync->naturalkey];
+            }
+        );
+    }
+
+
+    function sync_cohorts_members() {
+        $this->request_iterator(
+            'cohorts_members',
+            ['id', 'timeadded', 'timemodified'],
+            ['cohort_idnumber', 'user_username'],
+            function($to_sync, $i) {
+                global $DB;
+
+                $to_sync->naturalkey = $to_sync->cohort_idnumber . '::' . $to_sync->user_username;
+                $cohort = $this->get_cached('cohort', 'idnumber', $to_sync->cohort_idnumber, true);
+                $user = $this->get_cached('user', 'username', $to_sync->user_username, true);
+                \cohort_add_member($cohort->id,$user->id);
+                
+                $on_db = $DB->get_record('cohort_members', array('cohortid' => $cohort->id, 'userid' => $user->id), '*', MUST_EXIST);
+                $this->urls['cohorts_members'][$to_sync->naturalkey] = $on_db->id;
+                return null;
             }
         );
     }
@@ -596,8 +650,45 @@ class sync_up_enrolments_service extends service {
                     }
                 }
 
-                $this->urls[$type][$to_sync->naturalkey] = "$CFG->wwwroot/enrol/editinstance.php?courseid=$course->id&id=$on_db->id&type=$to_sync->enrol";
+                $this->urls['enrols'][$to_sync->naturalkey] = "$CFG->wwwroot/enrol/editinstance.php?courseid=$course->id&id=$on_db->id&type=$to_sync->enrol";
                 return $on_db;
+            }
+        );
+    }
+
+
+    function sync_enrolments() {
+        $this->request_iterator(
+            "enrolments",
+            ['id', 'timecreated', 'timemodified', 'modifierid', 'enrolid', 'userid', 'sortorder', 'itemid', 'contextid', 'roleid'],
+            // Opcionais: ['timestart', 'timeend']
+            ['course_idnumber', 'enrol', 'username', 'role_shortname', 'status'],
+            function($to_sync, $i) {
+                global $CFG;
+                $to_sync->naturalkey = "$to_sync->username::$to_sync->course_idnumber::$to_sync->enrol::$to_sync->role_shortname";
+                $course = $this->get_cached('course', 'idnumber', $to_sync->course_idnumber, true);
+                $course_enrol = $this->get_course_enrol($to_sync->course_idnumber, $to_sync->enrol);
+                $user = $this->get_cached('user', 'username', $to_sync->username, true);
+                $role =  $this->get_cached('role', 'shortname', $to_sync->role_shortname, true);
+
+                if (!\is_enrolled($course->context, $user)) {
+                    $course_enrol->plugin->enrol_user(
+                        $course_enrol->instance,
+                        $user->id,
+                        $role->id,
+                        $this->parse_date($to_sync->timestart, 'timestart', time()),
+                        $this->parse_date($to_sync->timeend, 'timeend', time()),
+                        $to_sync->status
+                    );
+                } else {
+                    $course_enrol->plugin->update_user_enrol(
+                        $course_enrol->instance,
+                        $user->id,
+                        $to_sync->status
+                    );
+                }
+                $this->urls['enrolments'][$to_sync->naturalkey] = "$CFG->wwwroot/user/view.php?course=$course->id&id=$user->id";
+                return null;
             }
         );
     }
@@ -648,68 +739,30 @@ class sync_up_enrolments_service extends service {
     }
 
 
-    function sync_enrolments() {
-        $this->request_iterator(
-            "enrolments",
-            ['id', 'timecreated', 'timemodified', 'modifierid', 'enrolid', 'userid', 'timestart', 'timeend', 'sortorder', 'itemid', 'contextid', 'roleid'],
-            // Opcionais: ['timestart', 'timeend']
-            ['course_idnumber', 'enrol', 'username', 'role_shortname', 'status'],
-            function($to_sync, $i) {
-                // TODO: Tratar o caso de timestart e timeend
-                global $CFG, $DB;
-                $to_sync->naturalkey = "$to_sync->username::$to_sync->course_idnumber::$to_sync->enrol::$to_sync->role_shortname";
-                $course = $this->get_cached('course', 'idnumber', $to_sync->course_idnumber, true);
-                $course_enrol = $this->get_course_enrol($to_sync->course_idnumber, $to_sync->enrol);
-                $user = $this->get_cached('user', 'username', $to_sync->username, true);
-                $role =  $this->get_cached('role', 'shortname', $to_sync->role_shortname, true);
-
-                if (!is_enrolled($course->context, $user)) {
-                    $course_enrol->plugin->enrol_user(
-                        $course_enrol->instance,
-                        $user->id,
-                        $course_enrol->roleid,
-                        $to_sync->timestart ?? time(),
-                        $to_sync->timeend ?? 0,
-                        $to_sync->status
-                    );
-                } else {
-                    $course_enrol->plugin->update_user_enrol(
-                        $course_enrol->instance,
-                        $user->id,
-                        $to_sync->status,
-                        $to_sync->timestart ?? time(),
-                        $to_sync->timeend ?? 0
-                    );
-                }                
-                $this->urls['enrolments'][$to_sync->naturalkey] = "$CFG->wwwroot/user/view.php?course=$course->id&id=$user->id";
-                return $on_db;
-            }
-        );
-    }
-
     function sync_groups_members() {
         $this->request_iterator(
             "groups_members",
             [],
             ['course_idnumber', 'group_idnumber', 'username'],
             function($to_sync, $i) {
-                global $CFG, $DB;
+                global $DB;
                 $to_sync->naturalkey = $to_sync->group_idnumber . '::' . $to_sync->course_idnumber;
                 $course = $this->get_cached('course', 'idnumber', $to_sync->course_idnumber, true);
-                $group = $this->get_from_cache('groups', $to_sync->naturalkey);
-                if (!$group) {
-                    $group = $DB->get_record('groups', ['idnumber' => $to_sync->group_idnumber, 'courseid' => $course->id]);
+                if (!$group = $this->get_from_cache('groups', $to_sync->naturalkey)) {
+                    if (!$group = $DB->get_record('groups', ['idnumber' => $to_sync->group_idnumber, 'courseid' => $course->id])) {
+                        throw new \Exception("O grupo com idnumber '{$to_sync->group_idnumber}' no curso '{$to_sync->course_idnumber}' não existe, favor corrigir.");
+                    }
                     $this->put_into_cache('groups', $to_sync->naturalkey, $group);
                 }
-                $user = $this->get_cached('user', 'username', $to_sync->username . '::' . $to_sync->course_idnumber, true);
+                $user = $this->get_cached('user', 'username', $to_sync->username, true);
 
-                var_export([$group, $user]);
                 $this->urls['groups_members']["$to_sync->naturalkey::$to_sync->username"] = \groups_add_member($group->id, $user->id);
-                return $on_db;
+                return null;
             }
         );
 
     }
+
 
     function insertSyncDB($jsonstring) {
         global $DB;

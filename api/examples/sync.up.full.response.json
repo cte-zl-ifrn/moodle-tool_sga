@@ -1,0 +1,65 @@
+{
+  "urls": {
+    "categories": {
+      "modelos": "/course/index.php?categoryid=2",
+      "modelos.ZL": "/course/index.php?categoryid=3",
+      "modelos.ZL.15806": "/course/index.php?categoryid=4",
+      "modelos.ZL.15806.2025.2": "/course/index.php?categoryid=5",
+      "modelos.ZL.20252.1.15806.448.1E": "/course/index.php?categoryid=6",
+      "diarios": "/course/index.php?categoryid=7",
+      "ZL": "/course/index.php?categoryid=8",
+      "ZL.15806": "/course/index.php?categoryid=9",
+      "ZL.15806.2025.2": "/course/index.php?categoryid=10",
+      "ZL.20252.1.15806.448.1E": "/course/index.php?categoryid=11"
+    },
+    "courses": {
+      "modelos-TEC.1018": "/course/view.php?id=2",
+      "20252.1.15806.448.2E.TEC.1018#123456": "/course/view.php?id=3",
+      "ZL.15806": "/course/view.php?id=4"
+    },
+    "users": {
+      "user00001": "/user/view.php?id=3",
+      "user00002": "/user/view.php?id=4",
+      "user00003": null,
+      "user00004": "/user/view.php?id=6",
+      "user00005": "/user/view.php?id=7"
+    },
+    "cohorts": {
+      "ZL.150097.ASD": "http://moodle/cohort/edit.php?id=1",
+      "ZL.150097.COORD": "http://moodle/cohort/edit.php?id=2",
+      "POLO.CN.COORD": "http://moodle/cohort/edit.php?id=3"
+    },
+    "cohorts_members": {
+      "ZL.150097.ASD::user00005": "1",
+      "ZL.150097.ASD::user00004": "2",
+      "ZL.150097.COORD::user00004": "3",
+      "unknown": null
+    },
+    "enrols": {
+      "self::student::ZL.15806": "http://moodle/enrol/editinstance.php?courseid=4&id=9&type=self",
+      "manual::student::ZL.15806": "http://moodle/enrol/editinstance.php?courseid=4&id=7&type=manual"
+    },
+    "enrols_cohorts": [],
+    "enrolments": {
+      "user00001::ZL.15806::manual::student": "http://moodle/user/view.php?course=4&id=3",
+      "user00002::ZL.15806::manual::student": "http://moodle/user/view.php?course=4&id=4"
+    },
+    "groups": {
+      "g001::ZL.15806": "http://moodle/group/group.php?courseid=4&id=1",
+      "g002::ZL.15806": "http://moodle/group/group.php?courseid=4&id=2"
+    },
+    "groups_members": {
+      "user00001": null,
+      "user00002": null
+    }
+  },
+  "erros": [
+    "Erro ao processar(UPD) o users#2 'user00003': `Erro ao escrever na base de dados`.",
+    "Erro ao processar(UPD) o cohorts_members#3 'unknown': `O registro do tipo 'user' com `username='user00003'` não existe, favor corrigir.`.",
+    "Erro ao processar(UPD) o groups_members#0 'user00001': `O registro do tipo 'user' com `username='user00001::ZL.15806'` não existe, favor corrigir.`.",
+    "Erro ao processar(UPD) o groups_members#1 'user00002': `O registro do tipo 'user' com `username='user00002::ZL.15806'` não existe, favor corrigir.`."
+  ],
+  "successes": [
+    "Backup do curso modelos-TEC.1018 (2) restaurado com sucesso no curso 20252.1.15806.448.2E.TEC.1018#123456 (3)."
+  ]
+}

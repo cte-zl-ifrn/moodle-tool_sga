@@ -124,7 +124,7 @@
       },
       {
         "idnumber": "user00002",
-        "firstname": "user com senaha ''",
+        "firstname": "user com senha ''",
         "lastname": "00002",
         "username": "user00002",
         "email": "user00002@localhost",
@@ -230,6 +230,27 @@
         "visible": "1",
         "component": "",
         "theme": ""
+      }
+    ]
+  },
+  "cohorts_members": {
+    "update_fields": [],
+    "list": [
+      {
+        "cohort_idnumber": "ZL.150097.ASD",
+        "user_username": "user00005"
+      },
+      {
+        "cohort_idnumber": "ZL.150097.ASD",
+        "user_username": "user00004"
+      },
+      {
+        "cohort_idnumber": "ZL.150097.COORD",
+        "user_username": "user00004"
+      },
+      {
+        "cohort_idnumber": "ZL.150097.COORD",
+        "user_username": "user00003"
       }
     ]
   },
