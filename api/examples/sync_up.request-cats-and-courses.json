@@ -10,22 +10,26 @@
     "list": [
       {
         "idnumber": "modelos",
-        "name": "Modelos"
+        "name": "Modelos",
+        "visible": 1
       },
       {
         "parent_idnumber": "modelos",
         "idnumber": "modelos.ZL",
-        "name": "CAMPUS AVANÇADO NATAL-ZONA LESTE"
+        "name": "CAMPUS AVANÇADO NATAL-ZONA LESTE",
+        "visible": 1
       },
       {
         "parent_idnumber": "modelos.ZL",
         "idnumber": "modelos.ZL.15806",
-        "name": "Tecnologia em Sistemas para Internet"
+        "name": "Tecnologia em Sistemas para Internet",
+        "visible": 1
       },
       {
         "parent_idnumber": "modelos.ZL.15806",
         "idnumber": "modelos.ZL.15806.2025.2",
-        "name": "2025.2"
+        "name": "2025.2",
+        "visible": 1
       },
       {
         "parent_idnumber": "modelos.ZL.15806.2025.2",
@@ -37,22 +41,26 @@
       },
       {
         "idnumber": "diarios",
-        "name": "Diários"
+        "name": "Diários",
+        "visible": 1
       },
       {
         "parent_idnumber": "diarios",
         "idnumber": "ZL",
-        "name": "CAMPUS AVANÇADO NATAL-ZONA LESTE"
+        "name": "CAMPUS AVANÇADO NATAL-ZONA LESTE",
+        "visible": 1
       },
       {
         "parent_idnumber": "ZL",
         "idnumber": "ZL.15806",
-        "name": "Tecnologia em Sistemas para Internet"
+        "name": "Tecnologia em Sistemas para Internet",
+        "visible": 1
       },
       {
         "parent_idnumber": "ZL.15806",
         "idnumber": "ZL.15806.2025.2",
-        "name": "2025.2"
+        "name": "2025.2",
+        "visible": 1
       },
       {
         "parent_idnumber": "ZL.15806.2025.2",
@@ -77,7 +85,7 @@
         "idnumber": "20252.1.15806.448.2E.TEC.1018#123456",
         "shortname": "20252.1.15806.448.2E.TEC.1018#123456",
         "fullname": "Leitura e Produção de Textos Acadêmicos e de Divulgação Científica",
-        "category_idnumber": "20252.1.15806.448.1E",
+        "category_idnumber": "ZL.20252.1.15806.448.1E",
         "template_path": [
           "modelos.ZL.15806-TEC.1018",
           "modelos.ZL-TEC.1018",
@@ -89,12 +97,11 @@
         "idnumber": "ZL.15806",
         "shortname": "ZL.15806",
         "fullname": "Sala da Coordenação do Curso de Tecnologia em Sistemas para Internet",
-        "category_idnumber": "15806"
+        "category_idnumber": "ZL.15806"
       }
     ]
   },
   "users": {
-    "synchronous": false,
     "update_fields": [
       "firstname",
       "lastname",
@@ -112,6 +119,7 @@
         "auth": "manual",
         "confirmed": 1,
         "suspended": 0,
+        "password": "",
         "active": true
       },
       {
@@ -161,6 +169,133 @@
         "suspended": 0,
         "password": "asdf",
         "active": true
+      },
+      {
+        "idnumber": "user00005",
+        "firstname": "user com senaha ''",
+        "lastname": "00005",
+        "username": "user00005",
+        "email": "user00005@localhost",
+        "auth": "manual",
+        "confirmed": 1,
+        "suspended": 0,
+        "password": " ",
+        "active": true,
+        "custom_fields": {
+          "sexo": "F",
+          "campus_sigla": "ZL",
+          "polo_nome": "CNAT",
+          "tipo_usuario": "aluno",
+          "curso_codigo": "15806",
+          "disciplina_sigla": "FIC.448",
+          "turma_descricao": "2E",
+          "turma_codigo": "ZL.20252.1.15806.FIC.448.2E"
+        },
+        "default_user_preferences": {
+          "auth_forcepasswordchange": 0,
+          "htmleditor": 0,
+          "email_send_count": 1,
+          "email_bounce_count": 0,
+          "visual_preference": 1
+        }
+      }
+    ]
+  },
+  "cohorts": {
+    "update_fields": [],
+    "list": [
+      {
+        "contextid": "1",
+        "name": "ZL.150097 - Assistente a Docência",
+        "idnumber": "ZL.150097.ASD",
+        "description": "Papel: Assistente a Docência. Campus: ZL. Curso: 150097 - Aperfeiçoamento em Educação Ambiental e Justiça Climática no Nordeste",
+        "visible": "1",
+        "component": "",
+        "theme": ""
+      },
+      {
+        "contextid": "1",
+        "name": "ZL.150097 - Coordenador de curso",
+        "idnumber": "ZL.150097.COORD",
+        "description": "Papel: Coordenador de curso. Campus: ZL. Curso: 150097 - Aperfeiçoamento em Educação Ambiental e Justiça Climática no Nordeste",
+        "visible": "1",
+        "component": "",
+        "theme": ""
+      },
+      {
+        "contextid": "1",
+        "name": "POLO.CN - Coordenador de Polo",
+        "idnumber": "POLO.CN.COORD",
+        "description": "Papel: Coordenador de polo. Campus: ZL. Polo: CN - Currai Novos",
+        "visible": "1",
+        "component": "",
+        "theme": ""
+      }
+    ]
+  },
+  "enrols": {
+    "update_fields": [],
+    "list": [
+      {
+        "enrol": "self",
+        "role_shortname": "student",
+        "course_idnumber": "ZL.15806",
+        "name": "Aluno via autoinscrição"
+      },
+      {
+        "enrol": "manual",
+        "role_shortname": "student",
+        "course_idnumber": "ZL.15806",
+        "name": "Inscrição manual de aluno"
+      }
+    ]
+  },
+  "groups": {
+    "update_fields": [],
+    "list": [
+      {
+        "course_idnumber": "ZL.15806",
+        "idnumber": "g001",
+        "name": "Grupo 1"
+      },
+      {
+        "course_idnumber": "ZL.15806",
+        "idnumber": "g002",
+        "name": "Grupo 2"
+      }
+    ]
+  },
+  "enrolments": {
+    "update_fields": [],
+    "list": [
+      {
+        "course_idnumber": "ZL.15806",
+        "enrol": "manual",
+        "username": "user00001",
+        "role_shortname": "student",
+        "status": "1"
+      },
+      {
+        "course_idnumber": "ZL.15806",
+        "enrol": "manual",
+        "username": "user00002",
+        "role_shortname": "student",
+        "status": "0"
+      }
+    ]
+  },
+  "groups_members": {
+    "update_fields": [],
+    "list": [
+      {
+        "course_idnumber": "ZL.15806",
+        "group_idnumber": "g001",
+        "username": "user00001"
+      },
+      {
+        "course_idnumber": "ZL.15806",
+        "group_idnumber": "g002",
+        "username": "user00002"
       }
     ]
   }
