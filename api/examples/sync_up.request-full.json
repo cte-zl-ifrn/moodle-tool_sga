@@ -233,6 +233,23 @@
       }
     ]
   },
+  "cohorts_members": {
+    "update_fields": [],
+    "list": [
+      {
+        "cohort_idnumber": "ZL.150097.ASD",
+        "user_username": "user00001"
+      },
+      {
+        "cohort_idnumber": "ZL.150097.ASD",
+        "user_username": "user00002"
+      },
+      {
+        "cohort_idnumber": "ZL.150097.COORD",
+        "user_username": "user00005"
+      }
+    ]
+  },
   "enrols": {
     "update_fields": [],
     "list": [
@@ -247,21 +264,6 @@
         "role_shortname": "student",
         "course_idnumber": "ZL.15806",
         "name": "Inscrição manual de aluno"
-      }
-    ]
-  },
-  "groups": {
-    "update_fields": [],
-    "list": [
-      {
-        "course_idnumber": "ZL.15806",
-        "idnumber": "g001",
-        "name": "Grupo 1"
-      },
-      {
-        "course_idnumber": "ZL.15806",
-        "idnumber": "g002",
-        "name": "Grupo 2"
       }
     ]
   },
@@ -281,6 +283,21 @@
         "username": "user00002",
         "role_shortname": "student",
         "status": "0"
+      }
+    ]
+  },
+  "groups": {
+    "update_fields": [],
+    "list": [
+      {
+        "course_idnumber": "ZL.15806",
+        "idnumber": "g001",
+        "name": "Grupo 1"
+      },
+      {
+        "course_idnumber": "ZL.15806",
+        "idnumber": "g002",
+        "name": "Grupo 2"
       }
     ]
   },
