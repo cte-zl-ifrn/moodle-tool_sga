@@ -146,6 +146,20 @@ trait sync_up_enrolments_helper {
         return $this->put_into_cache($origin, $naturalkey, $on_db);
     }
 
+    function get_cached_group_course($group_idnumber, $course_idnumber) {
+        global $DB;
+        $naturalkey = "$group_idnumber::$course_idnumber";
+        if ($group = $this->get_from_cache('groups', $naturalkey)) {
+            return $group;
+        }
+
+        $course = $this->get_cached('course', 'idnumber', $course_idnumber, true);
+        $group = $DB->get_record('groups', ['idnumber' => $group_idnumber, 'courseid' => $course->id]);
+        $this->put_into_cache('groups', $naturalkey, $group);
+
+        return $group;
+    }
+
     function get_cached_enrol_plugin($enrol_type) {
 
         $cached = $this->get_from_cache('enrol_plugins', $enrol_type);
@@ -339,18 +353,7 @@ class sync_up_enrolments_service extends service {
     use sync_up_enrolments_helper;
 
 
-    private $urls = [
-        "categories" => [],
-        "courses" => [],
-        "users" => [],
-        "cohorts" => [],
-        "cohorts_members" => [],
-        "enrols" => [],
-        "enrols_cohorts" => [],
-        "enrolments" => [],
-        "groups" => [],
-        "groups_members" => [],
-    ];
+    private $urls = [];
     private $errors = [];
     private $successes = [];
     private $json;
@@ -379,8 +382,8 @@ class sync_up_enrolments_service extends service {
             $this->sync_cohorts();
             $this->sync_cohorts_members();
             $this->sync_enrols();
-            $this->sync_groups();
             $this->sync_enrolments();
+            $this->sync_groups();
             $this->sync_groups_members();
         }
 
@@ -586,24 +589,20 @@ class sync_up_enrolments_service extends service {
 
     function sync_cohorts_members() {
         $this->request_iterator(
-            'cohorts_members',
-            ['id', 'timeadded', 'timemodified'],
-            ['cohort_idnumber', 'user_username'],
+            "cohorts_members",
+            ["id", "cohortid", "userid", "timeadded"],
+            ["cohort_idnumber", "user_username"],
             function($to_sync, $i) {
-                global $DB;
+                \cohort_add_member(
+                    $this->get_cached('cohort', 'idnumber', $to_sync->cohort_idnumber, true)->id,
+                    $this->get_cached('user', 'username', $to_sync->user_username, true)->id
+                );
 
-                $to_sync->naturalkey = $to_sync->cohort_idnumber . '::' . $to_sync->user_username;
-                $cohort = $this->get_cached('cohort', 'idnumber', $to_sync->cohort_idnumber, true);
-                $user = $this->get_cached('user', 'username', $to_sync->user_username, true);
-                \cohort_add_member($cohort->id,$user->id);
-                
-                $on_db = $DB->get_record('cohort_members', array('cohortid' => $cohort->id, 'userid' => $user->id), '*', MUST_EXIST);
-                $this->urls['cohorts_members'][$to_sync->naturalkey] = $on_db->id;
-                return null;
+                $this->urls['cohorts_members']["$to_sync->cohort_idnumber::$to_sync->user_username"] = true;
+                return true;
             }
         );
     }
-
 
     function sync_enrols() {
         $this->request_iterator(
@@ -739,25 +738,61 @@ class sync_up_enrolments_service extends service {
     }
 
 
+    function sync_enrolments() {
+        $this->request_iterator(
+            "enrolments",
+            ['id', 'timecreated', 'timemodified', 'modifierid', 'enrolid', 'userid', 'timestart', 'timeend', 'sortorder', 'itemid', 'contextid', 'roleid'],
+            // Opcionais: ['timestart', 'timeend']
+            ['course_idnumber', 'enrol', 'username', 'role_shortname', 'status'],
+            function($to_sync, $i) {
+                // TODO: Tratar o caso de timestart e timeend
+                global $CFG, $DB;
+                $to_sync->naturalkey = "$to_sync->username::$to_sync->course_idnumber::$to_sync->enrol::$to_sync->role_shortname";
+                $course = $this->get_cached('course', 'idnumber', $to_sync->course_idnumber, true);
+                $course_enrol = $this->get_course_enrol($to_sync->course_idnumber, $to_sync->enrol);
+                $user = $this->get_cached('user', 'username', $to_sync->username, true);
+                $role =  $this->get_cached('role', 'shortname', $to_sync->role_shortname, true);
+
+                if (!is_enrolled($course->context, $user)) {
+                    $course_enrol->plugin->enrol_user(
+                        $course_enrol->instance,
+                        $user->id,
+                        $course_enrol->roleid,
+                        $to_sync->timestart ?? time(),
+                        $to_sync->timeend ?? 0,
+                        $to_sync->status
+                    );
+                } else {
+                    $course_enrol->plugin->update_user_enrol(
+                        $course_enrol->instance,
+                        $user->id,
+                        $to_sync->status,
+                        $to_sync->timestart ?? time(),
+                        $to_sync->timeend ?? 0
+                    );
+                }                
+                $this->urls['enrolments'][$to_sync->naturalkey] = "$CFG->wwwroot/user/view.php?course=$course->id&id=$user->id";
+                return $on_db;
+            }
+        );
+    }
+
+    
     function sync_groups_members() {
         $this->request_iterator(
             "groups_members",
-            [],
+            ["id", "groupid", "userid", "timeadded", "componente", "itemid"],
             ['course_idnumber', 'group_idnumber', 'username'],
             function($to_sync, $i) {
-                global $DB;
-                $to_sync->naturalkey = $to_sync->group_idnumber . '::' . $to_sync->course_idnumber;
-                $course = $this->get_cached('course', 'idnumber', $to_sync->course_idnumber, true);
-                if (!$group = $this->get_from_cache('groups', $to_sync->naturalkey)) {
-                    if (!$group = $DB->get_record('groups', ['idnumber' => $to_sync->group_idnumber, 'courseid' => $course->id])) {
-                        throw new \Exception("O grupo com idnumber '{$to_sync->group_idnumber}' no curso '{$to_sync->course_idnumber}' não existe, favor corrigir.");
-                    }
-                    $this->put_into_cache('groups', $to_sync->naturalkey, $group);
-                }
-                $user = $this->get_cached('user', 'username', $to_sync->username, true);
+                global $CFG, $DB;
 
-                $this->urls['groups_members']["$to_sync->naturalkey::$to_sync->username"] = \groups_add_member($group->id, $user->id);
-                return null;
+                // \groups_add_member(
+                    $this->get_cached_group_course($to_sync->group_idnumber, $to_sync->course_idnumber)->id;
+                //     $this->get_cached('user', 'username', $to_sync->username, true)->id
+                // );
+
+                $this->urls['groups_members']["$to_sync->group_idnumber::$to_sync->course_idnumber::$to_sync->username"] = true;
+                return $on_db;
             }
         );
 
