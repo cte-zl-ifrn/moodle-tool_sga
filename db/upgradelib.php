@@ -87,7 +87,7 @@ function sga_bulk_course_custom_field()
     sga_save_course_custom_field($cid, 'carga_horaria', 'Carga horária', 'number');
     sga_save_course_custom_field($cid, 'tem_certificado', 'Tem certificado', 'checkbox');
 
-    sga_save_course_custom_field($cid, 'grupos_sincronizados', 'Campos criados pelo integrador');
+    sga_save_course_custom_field($cid, 'grupos_sincronizados', 'Grupos criados pelo integrador');
 }
 
 
