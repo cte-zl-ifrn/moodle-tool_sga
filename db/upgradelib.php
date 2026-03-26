@@ -29,6 +29,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/admin/tool/sga/locallib.php');
+
+
 function sga_save_course_custom_field($categoryid, $shortname, $name, $type = 'text', $configdata = '{"required":"0","uniquevalues":"0","displaysize":50,"maxlength":250,"ispassword":"0","link":"","locked":"0","visibility":"0"}')
 {
     return \tool_sga\get_or_create(
@@ -66,11 +68,28 @@ function sga_bulk_course_custom_field()
     sga_save_course_custom_field($cid, 'curso_descricao', 'Descrição do curso');
     sga_save_course_custom_field($cid, 'curso_nome', 'Nome do curso');
     sga_save_course_custom_field($cid, 'curso_sala_coordenacao', 'É sala de coordenação');
+    sga_save_course_custom_field($cid, 'curso_titulo_certificado_masculino', 'Título do certificado masculino');
+    sga_save_course_custom_field($cid, 'curso_titulo_certificado_feminino', 'Título do certificado feminino');
+    sga_save_course_custom_field($cid, 'curso_ch_total', 'Carga horária total do curso');
+    sga_save_course_custom_field($cid, 'curso_ch_aula', 'Carga horária da aula');
+    sga_save_course_custom_field($cid, 'curso_conteudo', 'Conteúdo do curso');
+    sga_save_course_custom_field($cid, 'curso_autoinstrucional', 'Curso é autoinstrucional', 'checkbox');
+    sga_save_course_custom_field($cid, 'curso_autoinscricao', 'Curso aceita autoinscrição', 'checkbox');
+    sga_save_course_custom_field($cid, 'curso_modalidade_id', 'ID da modalidade do curso');
+    sga_save_course_custom_field($cid, 'curso_modalidade_descricao', 'Descrição da modalidade do curso');
+    sga_save_course_custom_field($cid, 'curso_nivel_ensino_id', 'ID do nível de ensino do curso');
+    sga_save_course_custom_field($cid, 'curso_nivel_ensino_descricao', 'Descrição do nível de ensino do curso');
+    sga_save_course_custom_field($cid, 'curso_programa', 'Programa do curso');
 
     sga_save_course_custom_field($cid, 'turma_id', 'ID da turma');
     sga_save_course_custom_field($cid, 'turma_codigo', 'Código da turma');
 
     sga_save_course_custom_field($cid, 'turma_ano_periodo', 'Ano/Semestre da turma');
+    sga_save_course_custom_field($cid, 'turma_data_inicio', 'Data de início da turma');
+    sga_save_course_custom_field($cid, 'turma_data_fim', 'Data de fim da turma');
+    sga_save_course_custom_field($cid, 'turma_gerar_matricula', 'Gerar matrícula na turma', 'checkbox');
+    sga_save_course_custom_field($cid, 'turma_nota_minima', 'Nota mínima da turma');
+    sga_save_course_custom_field($cid, 'completude_minima', 'Completude mínima da turma');
 
     sga_save_course_custom_field($cid, 'diario_id', 'ID do diario');
     sga_save_course_custom_field($cid, 'diario_situacao', 'Situação do diario');
@@ -83,6 +102,14 @@ function sga_bulk_course_custom_field()
     sga_save_course_custom_field($cid, 'disciplina_tipo', 'Tipo da disciplina');
     sga_save_course_custom_field($cid, 'disciplina_optativo', 'Optativo da disciplina');
     sga_save_course_custom_field($cid, 'disciplina_qtd_avaliacoes', 'Quantidade de avaliações da disciplina');
+    sga_save_course_custom_field($cid, 'disciplina_is_seminario_estagio_docente', 'É disciplina de seminário ou estágio docente', 'checkbox');
+    sga_save_course_custom_field($cid, 'disciplina_ch_presencial', 'Carga horária presencial da disciplina');
+    sga_save_course_custom_field($cid, 'disciplina_ch_pratica', 'Carga horária prática da disciplina');
+    sga_save_course_custom_field($cid, 'disciplina_ch_extensao', 'Carga horária de extensão da disciplina');
+    sga_save_course_custom_field($cid, 'disciplina_ch_pcc', 'Carga horária de PCC da disciplina');
+    sga_save_course_custom_field($cid, 'disciplina_ch_visita_tecnica', 'Carga horária de visita técnica da disciplina');
+    sga_save_course_custom_field($cid, 'disciplina_ch_semanal_1s', 'Carga horária semanal do 1º semestre da disciplina');
+    sga_save_course_custom_field($cid, 'disciplina_ch_semanal_2s', 'Carga horária semanal do 2º semestre da disciplina');
 
     sga_save_course_custom_field($cid, 'carga_horaria', 'Carga horária', 'number');
     sga_save_course_custom_field($cid, 'tem_certificado', 'Tem certificado', 'checkbox');
@@ -97,7 +124,7 @@ function sga_bulk_user_custom_field()
 
     $cid = \tool_sga\get_or_create('user_info_category', ['name' => 'SGA'], ['sortorder' => \tool_sga\get_last_sort_order('user_info_category')])->id;
 
-    sga_save_user_custom_field($cid, 'email_google_classroom', 'E-mail @escolar (Google Classroom');
+    sga_save_user_custom_field($cid, 'email_google_classroom', 'E-mail @escolar (Google Classroom)');
     sga_save_user_custom_field($cid, 'email_academico', 'E-mail @academico (Microsoft)');
     sga_save_user_custom_field($cid, 'email_secundario', 'Secundário (servidores)');
 
@@ -134,46 +161,98 @@ function tool_sga_migrate($oldversion)
     $dbman = $DB->get_manager();
 
     $sga_enrolment_to_sync = new xmldb_table("sga_enrolment_to_sync");
-    $sga_enrolment_to_sync->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
-    $sga_enrolment_to_sync->add_field("json",           XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);
-    $sga_enrolment_to_sync->add_field("timecreated",    XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-    $sga_enrolment_to_sync->add_field("processed",      XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-
-    $sga_enrolment_to_sync->add_key("primary",      XMLDB_KEY_PRIMARY,  ["id"],         null,       null);
     if (!$dbman->table_exists($sga_enrolment_to_sync)) {
+        $sga_enrolment_to_sync->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
+        $sga_enrolment_to_sync->add_field("json",           XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);
+        $sga_enrolment_to_sync->add_field("timecreated",    XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+        $sga_enrolment_to_sync->add_field("processed",      XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+
+        $sga_enrolment_to_sync->add_key("primary",          XMLDB_KEY_PRIMARY,  ["id"],         null,       null);
+
         $dbman->create_table($sga_enrolment_to_sync);
     }
 
     $sga_learning_path = new xmldb_table("sga_learning_path");
-    $sga_learning_path->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
-    $sga_learning_path->add_field("name",           XMLDB_TYPE_CHAR,    '255',      null,           XMLDB_NOTNULL, null,            null, null, null);
-    $sga_learning_path->add_field("description",    XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);
-    $sga_learning_path->add_field("descriptionformat", XMLDB_TYPE_INTEGER, '2',     XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-    $sga_learning_path->add_field("slug",           XMLDB_TYPE_CHAR,    '255',      null,           XMLDB_NOTNULL, null,            null, null, null);
-    $sga_learning_path->add_field("timecreated",    XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-    $sga_learning_path->add_field("timemodified",   XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-    $sga_learning_path->add_field("visible",        XMLDB_TYPE_INTEGER, '1',        XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-    $sga_learning_path->add_field("sortorder",      XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-
-    $sga_learning_path->add_key("primary",      XMLDB_KEY_PRIMARY,  ["id"],         null,       null);
     if (!$dbman->table_exists($sga_learning_path)) {
+        $sga_learning_path->add_field("id",                 XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
+        $sga_learning_path->add_field("name",               XMLDB_TYPE_CHAR,    '255',      null,           XMLDB_NOTNULL, null,            null, null, null);
+        $sga_learning_path->add_field("description",        XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);
+        $sga_learning_path->add_field("descriptionformat",  XMLDB_TYPE_INTEGER, '2',     XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+        $sga_learning_path->add_field("slug",               XMLDB_TYPE_CHAR,    '255',      null,           XMLDB_NOTNULL, null,            null, null, null);
+        $sga_learning_path->add_field("timecreated",        XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+        $sga_learning_path->add_field("timemodified",       XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+        $sga_learning_path->add_field("visible",            XMLDB_TYPE_INTEGER, '1',        XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+        $sga_learning_path->add_field("sortorder",          XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+
+        $sga_learning_path->add_key("primary",              XMLDB_KEY_PRIMARY,  ["id"],         null,       null);
         $dbman->create_table($sga_learning_path);
     }
 
     $sga_learning_path_course = new xmldb_table("sga_learning_path_course");
-    $sga_learning_path_course->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
-    $sga_learning_path_course->add_field("learningpathid", XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-    $sga_learning_path_course->add_field("courseid",       XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-    $sga_learning_path_course->add_field("timecreated",    XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-    $sga_learning_path_course->add_field("timemodified",   XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-    $sga_learning_path_course->add_field("visible",        XMLDB_TYPE_INTEGER, '1',        XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-    $sga_learning_path_course->add_field("sortorder",      XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-
-    $sga_learning_path_course->add_key("primary",      XMLDB_KEY_PRIMARY,  ["id"],         null,       null);
-    $sga_learning_path_course->add_key("learningpathid", XMLDB_KEY_FOREIGN, ["learningpathid"], "sga_learning_path", ["id"]);
-    $sga_learning_path_course->add_key("courseid",       XMLDB_KEY_FOREIGN, ["courseid"],       "course",            ["id"]);
     if (!$dbman->table_exists($sga_learning_path_course)) {
+        $sga_learning_path_course->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
+        $sga_learning_path_course->add_field("learningpathid", XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+        $sga_learning_path_course->add_field("courseid",       XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+        $sga_learning_path_course->add_field("timecreated",    XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+        $sga_learning_path_course->add_field("timemodified",   XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+        $sga_learning_path_course->add_field("visible",        XMLDB_TYPE_INTEGER, '1',        XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+        $sga_learning_path_course->add_field("sortorder",      XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+
+        $sga_learning_path_course->add_key("primary",        XMLDB_KEY_PRIMARY,  ["id"],         null,       null);
+        $sga_learning_path_course->add_key("learningpathid", XMLDB_KEY_FOREIGN, ["learningpathid"], "sga_learning_path", ["id"]);
+        $sga_learning_path_course->add_key("courseid",       XMLDB_KEY_FOREIGN, ["courseid"],       "course",            ["id"]);
+
         $dbman->create_table($sga_learning_path_course);
+    }
+
+    
+
+    $table = new xmldb_table('sga_relatorio_cursos_autoinstrucionais');
+    if (!$dbman->table_exists($table)) {
+
+        $table->add_field('id',                     XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+        $table->add_field('curso_nome',             XMLDB_TYPE_CHAR,    '255',  null, XMLDB_NOTNULL);
+        $table->add_field('campus',                 XMLDB_TYPE_CHAR,    '255',  null, XMLDB_NOTNULL);
+        $table->add_field('diario_tipo',            XMLDB_TYPE_CHAR,    '50',   null, XMLDB_NOTNULL);
+        $table->add_field('quantidade_cursos',      XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, null, '1');
+        $table->add_field('total_enrolled',         XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('accessed',               XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('no_access',              XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('final_exam_takers',      XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('passed',                 XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('failed',                 XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('avg_grade',              XMLDB_TYPE_NUMBER,  '10,2', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('with_certificate',       XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('without_certificate',    XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('completed',              XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timegenerated',          XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL);
+
+        $table->add_key('primary',                  XMLDB_KEY_PRIMARY, ['id']);
+
+        $table->add_index('idx_curso_nome',         XMLDB_INDEX_NOTUNIQUE, ['curso_nome']);
+        $table->add_index('idx_campus',             XMLDB_INDEX_NOTUNIQUE, ['campus']);
+        $table->add_index('idx_diario_tipo',        XMLDB_INDEX_NOTUNIQUE, ['diario_tipo']);
+        $table->add_index('idx_timegenerated',      XMLDB_INDEX_NOTUNIQUE, ['timegenerated']);
+
+        $dbman->create_table($table);
+    }
+
+    $table = new xmldb_table('sga_restricoes_autoinscricao');
+    if (!$dbman->table_exists($table)) {
+
+        $table->add_field('id',             XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+        $table->add_field('courseid',       XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL);
+        $table->add_field('chave',          XMLDB_TYPE_CHAR,    '255',  null, XMLDB_NOTNULL);
+        $table->add_field('restricao',      XMLDB_TYPE_CHAR,    '255',  null, XMLDB_NOTNULL);
+        $table->add_field('descricao',      XMLDB_TYPE_TEXT,    null,   null);
+        $table->add_field('timecreated',    XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL);
+
+        $table->add_key('primary',          XMLDB_KEY_PRIMARY, ['id']);
+
+        $table->add_index('idx_courseid',   XMLDB_INDEX_NOTUNIQUE, ['courseid']);
+        $table->add_index('idx_chave',      XMLDB_INDEX_NOTUNIQUE, ['chave']);
+
+        $dbman->create_table($table);
     }
 
     return true;
