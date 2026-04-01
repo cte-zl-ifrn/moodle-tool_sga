@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/suap/db" VERSION="2026012200"
+<XMLDB PATH="admin/tool/sga/db" VERSION="2026012200"
        COMMENT="Relatórios consolidados de minicursos autoinstrucionais">
 
   <TABLES>

@@ -28,6 +28,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once("../../config.php");
 require_once($CFG->dirroot . '/admin/tool/sga/locallib.php');
 
 
@@ -83,16 +84,16 @@ function sga_bulk_course_custom_field()
 
     sga_save_course_custom_field($cid, 'turma_id', 'ID da turma');
     sga_save_course_custom_field($cid, 'turma_codigo', 'Código da turma');
-
     sga_save_course_custom_field($cid, 'turma_ano_periodo', 'Ano/Semestre da turma');
     sga_save_course_custom_field($cid, 'turma_data_inicio', 'Data de início da turma');
     sga_save_course_custom_field($cid, 'turma_data_fim', 'Data de fim da turma');
     sga_save_course_custom_field($cid, 'turma_gerar_matricula', 'Gerar matrícula na turma', 'checkbox');
     sga_save_course_custom_field($cid, 'turma_nota_minima', 'Nota mínima da turma');
-    sga_save_course_custom_field($cid, 'completude_minima', 'Completude mínima da turma');
+    sga_save_course_custom_field($cid, 'turma_completude_minima', 'Completude mínima da turma');
 
     sga_save_course_custom_field($cid, 'diario_id', 'ID do diario');
     sga_save_course_custom_field($cid, 'diario_situacao', 'Situação do diario');
+    sga_save_course_custom_field($cid, 'diario_tipo', 'Tipo do diario');
 
     sga_save_course_custom_field($cid, 'disciplina_id', 'ID da disciplina');
     sga_save_course_custom_field($cid, 'disciplina_descricao', 'Descrição da disciplina');
@@ -205,8 +206,6 @@ function tool_sga_migrate($oldversion)
         $dbman->create_table($sga_learning_path_course);
     }
 
-    
-
     $table = new xmldb_table('sga_relatorio_cursos_autoinstrucionais');
     if (!$dbman->table_exists($table)) {
 
@@ -254,6 +253,9 @@ function tool_sga_migrate($oldversion)
 
         $dbman->create_table($table);
     }
+
+    sga_bulk_course_custom_field();
+    sga_bulk_user_custom_field();
 
     return true;
 }

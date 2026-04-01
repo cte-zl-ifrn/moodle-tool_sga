@@ -25,11 +25,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/upgradelib.php');
+require_once(__DIR__ . '/migrate.php');
 
 function xmldb_tool_sga_upgrade($oldversion)
 {
-    sga_bulk_course_custom_field();
-    sga_bulk_user_custom_field();
     return tool_sga_migrate($oldversion);
 }
