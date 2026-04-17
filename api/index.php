@@ -35,30 +35,10 @@ error_reporting(E_ALL);
 
 try {
     require_once('../../../../config.php');
-    header('Content-Type: application/json; charset=utf-8');
-    set_exception_handler('\tool_sga\exception_handler');
-
-    $whitelist = [
-        'sync_up_enrolments',
-        'sync_down_grades',
-    ];
-    $params = explode('&', $_SERVER["QUERY_STRING"]);
-    $service_name = $params[0];
-
-    if ((!in_array($service_name, $whitelist))) {
-        throw new \Exception("Serviço não existe", 404);
-    }
-    require_once "$service_name.php";
-
-    $service_class = "\\tool_sga\\$service_name" . "_service";
-    $service = new $service_class();
-    $service->call();
+    require_once('../locallib.php');
+    require_once("servicelib.php");
 } catch (\Exception $e) {
-    /*
-        200 – 208, 226,
-        300 – 305, 307, 308
-        400 – 417, 422 – 424, 426, 428 – 429, 431
-        500 – 508, 510 – 511
-    */
-    exception_handler($e);
+    $error_code = $exception->getCode() ?: 500;
+    http_response_code($error_code);
+    die(json_encode(["error" => ["message" => $exception->getMessage(), "code" => $error_code, "fail" => "absolute"]]));
 }

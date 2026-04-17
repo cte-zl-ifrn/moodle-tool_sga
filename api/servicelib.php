@@ -28,7 +28,6 @@
 
 namespace tool_sga;
 
-
 function exception_handler($exception) {
     /* HTTP response codes
         200 – 208, 226,
@@ -38,7 +37,7 @@ function exception_handler($exception) {
     */
     $error_code = $exception->getCode() ?: 500;
     http_response_code($error_code);
-    die(json_encode(["error" => ["message" => $exception->getMessage(), "code" => $error_code]]));
+    die(json_encode(["error" => ["message" => $exception->getMessage() . " " . $error_code, "code" => $error_code]]));
 }
 
 
@@ -60,19 +59,45 @@ class service {
 
     function call()
     {
-        try {
-            $this->authenticate();
-            $data = $this->do_call();
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        } catch (\Exception $e) {
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode(["error"=> $e->getMessage()], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        }
+        $this->authenticate();
+        $data = $this->do_call();
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     function do_call()
     {
         throw new \Exception("Não implementado", 501);
     }
+}
+
+
+try {
+    header('Content-Type: application/json; charset=utf-8');
+    set_exception_handler('\tool_sga\exception_handler');
+
+    $whitelist = [
+        'sync_up_enrolments',
+        'sync_down_grades',
+        'health',
+    ];
+    $params = explode('&', $_SERVER["QUERY_STRING"]);
+    $service_name = $params[0];
+
+    if ((!in_array($service_name, $whitelist))) {
+        throw new \Exception("Serviço não existe", 404);
+    }
+    require_once "$service_name.php";
+
+    $service_class = "\\tool_sga\\$service_name" . "_service";
+    $service = new $service_class();
+    $service->call();
+} catch (\Exception $e) {
+    /*
+        200 – 208, 226,
+        300 – 305, 307, 308
+        400 – 417, 422 – 424, 426, 428 – 429, 431
+        500 – 508, 510 – 511
+    */
+    exception_handler($e);
 }
