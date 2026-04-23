@@ -25,10 +25,11 @@
  * @see         https://docs.moodle.org/dev/XMLDB_creating_new_DDL_functions
  * @see         https://docs.moodle.org/dev/Upgrade_API
  */
+namespace tool_sga;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once("../../config.php");
+global $CFG;
 require_once($CFG->dirroot . '/admin/tool/sga/locallib.php');
 
 
@@ -115,7 +116,7 @@ function sga_bulk_course_custom_field()
     sga_save_course_custom_field($cid, 'carga_horaria', 'Carga horária', 'number');
     sga_save_course_custom_field($cid, 'tem_certificado', 'Tem certificado', 'checkbox');
 
-    sga_save_course_custom_field($cid, 'grupos_sincronizados', 'Grupos criados pelo integrador');
+    sga_save_course_custom_field($cid, 'grupos_sincronizados', 'Grupos criados pelo integrador');    
 }
 
 
@@ -161,7 +162,7 @@ function tool_sga_migrate($oldversion)
 
     $dbman = $DB->get_manager();
 
-    $sga_enrolment_to_sync = new xmldb_table("sga_enrolment_to_sync");
+    $sga_enrolment_to_sync = new \xmldb_table("sga_enrolment_to_sync");
     if (!$dbman->table_exists($sga_enrolment_to_sync)) {
         $sga_enrolment_to_sync->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
         $sga_enrolment_to_sync->add_field("json",           XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);
@@ -173,7 +174,7 @@ function tool_sga_migrate($oldversion)
         $dbman->create_table($sga_enrolment_to_sync);
     }
 
-    $sga_learning_path = new xmldb_table("sga_learning_path");
+    $sga_learning_path = new \xmldb_table("sga_learning_path");
     if (!$dbman->table_exists($sga_learning_path)) {
         $sga_learning_path->add_field("id",                 XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
         $sga_learning_path->add_field("name",               XMLDB_TYPE_CHAR,    '255',      null,           XMLDB_NOTNULL, null,            null, null, null);
@@ -189,7 +190,7 @@ function tool_sga_migrate($oldversion)
         $dbman->create_table($sga_learning_path);
     }
 
-    $sga_learning_path_course = new xmldb_table("sga_learning_path_course");
+    $sga_learning_path_course = new \xmldb_table("sga_learning_path_course");
     if (!$dbman->table_exists($sga_learning_path_course)) {
         $sga_learning_path_course->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
         $sga_learning_path_course->add_field("learningpathid", XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
@@ -206,7 +207,7 @@ function tool_sga_migrate($oldversion)
         $dbman->create_table($sga_learning_path_course);
     }
 
-    $table = new xmldb_table('sga_relatorio_cursos_autoinstrucionais');
+    $table = new \xmldb_table('sga_relatorio_cursos_autoinstrucionais');
     if (!$dbman->table_exists($table)) {
 
         $table->add_field('id',                     XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
@@ -236,7 +237,7 @@ function tool_sga_migrate($oldversion)
         $dbman->create_table($table);
     }
 
-    $table = new xmldb_table('sga_restricoes_autoinscricao');
+    $table = new \xmldb_table('sga_restricoes_autoinscricao');
     if (!$dbman->table_exists($table)) {
 
         $table->add_field('id',             XMLDB_TYPE_INTEGER, '10',   null, XMLDB_NOTNULL, XMLDB_SEQUENCE);

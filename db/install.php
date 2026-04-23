@@ -30,5 +30,5 @@ require_once(__DIR__ . '/migrate.php');
  */
 function xmldb_tool_sga_install()
 {
-    return tool_sga_migrate(0);
+    return \tool_sga\tool_sga_migrate(0);
 }
