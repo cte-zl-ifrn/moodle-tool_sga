@@ -73,8 +73,6 @@ function sga_save_user_custom_field($categoryid, $shortname, $name, $datatype = 
 function sga_bulk_course_custom_field()
 {
     global $DB;
-
-
     $campus = sga_save_course_custom_category('Campus');
     sga_save_course_custom_field($campus, 'campus_id', 'ID do campus');
     sga_save_course_custom_field($campus, 'campus_sigla', 'Sigla do campus');
@@ -90,16 +88,33 @@ function sga_bulk_course_custom_field()
     sga_save_course_custom_field($curso, 'curso_titulo_certificado_feminino', 'Título do certificado feminino');
     sga_save_course_custom_field($curso, 'curso_ch_total', 'Carga horária total do curso');
     sga_save_course_custom_field($curso, 'curso_ch_aula', 'Carga horária da aula');
-    sga_save_course_custom_field($curso, 'curso_conteudo', 'Conteúdo do curso');
     sga_save_course_custom_field($curso, 'curso_autoinstrucional', 'Curso é autoinstrucional', 'checkbox');
+    sga_save_course_custom_field($curso, 'curso_programa', 'Programa do curso');
     sga_save_course_custom_field($curso, 'curso_modalidade_id', 'ID da modalidade do curso');
     sga_save_course_custom_field($curso, 'curso_modalidade_descricao', 'Descrição da modalidade do curso');
     sga_save_course_custom_field($curso, 'curso_nivel_ensino_id', 'ID do nível de ensino do curso');
     sga_save_course_custom_field($curso, 'curso_nivel_ensino_descricao', 'Descrição do nível de ensino do curso');
-    sga_save_course_custom_field($curso, 'curso_programa', 'Programa do curso');
+    sga_save_course_custom_field($curso, 'curso_conteudo', 'Conteúdo do curso');
     sga_save_course_custom_field($curso, 'curso_restricoes', 'Restrições do curso');
     sga_save_course_custom_field($curso, 'curso_sala_coordenacao', 'É sala de coordenação do curso');
 
+    $componente = sga_save_course_custom_category('Disciplina/Componente curricular');
+    sga_save_course_custom_field($componente, 'disciplina_id', 'ID da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_tipo', 'Tipo da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_sigla', 'Sigla da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_descricao', 'Descrição da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_descricao_historico', 'Descrição da disciplina que constará no histórico');
+    sga_save_course_custom_field($componente, 'disciplina_periodo', 'Período da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_optativo', 'Optativo da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_qtd_avaliacoes', 'Quantidade de avaliações da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_is_seminario_estagio_docente', 'É disciplina de seminário ou estágio docente', 'checkbox');
+    sga_save_course_custom_field($componente, 'disciplina_ch_presencial', 'Carga horária presencial da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_ch_pratica', 'Carga horária prática da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_ch_extensao', 'Carga horária de extensão da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_ch_pcc', 'Carga horária de PCC da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_ch_visita_tecnica', 'Carga horária de visita técnica da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_ch_semanal_1s', 'Carga horária semanal do 1º semestre da disciplina');
+    sga_save_course_custom_field($componente, 'disciplina_ch_semanal_2s', 'Carga horária semanal do 2º semestre da disciplina');
 
     $turma = sga_save_course_custom_category('Turma');
     sga_save_course_custom_field($turma, 'turma_id', 'ID da turma');
@@ -112,25 +127,6 @@ function sga_bulk_course_custom_field()
     sga_save_course_custom_field($turma, 'turma_completude_minima', 'Completude mínima da turma');
     sga_save_course_custom_field($turma, 'turma_modelo_padrao', 'Modelo padrão da turma');
 
-
-    $componente = sga_save_course_custom_category('Disciplina/Componente curricular');
-    sga_save_course_custom_field($componente, 'disciplina_id', 'ID da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_sigla', 'Sigla da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_descricao', 'Descrição da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_descricao_historico', 'Descrição da disciplina que constará no histórico');
-    sga_save_course_custom_field($componente, 'disciplina_periodo', 'Período da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_tipo', 'Tipo da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_optativo', 'Optativo da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_qtd_avaliacoes', 'Quantidade de avaliações da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_is_seminario_estagio_docente', 'É disciplina de seminário ou estágio docente', 'checkbox');
-    sga_save_course_custom_field($componente, 'disciplina_ch_presencial', 'Carga horária presencial da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_ch_pratica', 'Carga horária prática da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_ch_extensao', 'Carga horária de extensão da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_ch_pcc', 'Carga horária de PCC da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_ch_visita_tecnica', 'Carga horária de visita técnica da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_ch_semanal_1s', 'Carga horária semanal do 1º semestre da disciplina');
-    sga_save_course_custom_field($componente, 'disciplina_ch_semanal_2s', 'Carga horária semanal do 2º semestre da disciplina');
-
     $diario = sga_save_course_custom_category('Diário');
     sga_save_course_custom_field($diario, 'diario_id', 'ID do diário');
     sga_save_course_custom_field($diario, 'diario_tipo', 'Tipo de diário');
@@ -142,7 +138,7 @@ function sga_bulk_course_custom_field()
     $linguagens = json_encode([
         "required" => "0",
         "uniquevalues" => "0",
-        "options" => get_languages(),
+        "options" => \local_suap\get_languages(),
         "defaultvalue" => "pt_br",
         "locked" => "0",
         "visibility" => "2"
@@ -153,25 +149,26 @@ function sga_bulk_course_custom_field()
 
     $integrador_ava = sga_save_course_custom_category('Integrador AVA');
     sga_save_course_custom_field($integrador_ava, 'grupos_sincronizados', 'Grupos sincronizados pelo Integrador AVA');
-    sga_save_course_custom_field($integrador_ava, 'curso_autoinscricao', 'Curso aceita autoinscrição', 'checkbox');
 
     $painel_ava = sga_save_course_custom_category('Painel AVA');
-    $sql = "       SELECT 'diarios'        AS id, 'Diários'        AS data"
-         . " UNION SELECT 'autoinscricoes' AS id, 'Autoinscrições' AS data"
-         . " UNION SELECT 'coordenacoes'   AS id, 'Coordenações'   AS data"
-         . " UNION SELECT 'praticas'       AS id, 'Práticas'       AS data"
-         . " UNION SELECT 'modelos'        AS id, 'Modelos'        AS data";    
-    $configdata = json_encode([
-        "required" => "0",
-        "uniquevalues" => "0",
-        "dynamicsql" => $sql,
-        "autocomplete" => "0",
-        "defaultvalue" => "",
-        "multiselect" => "0",
-        "locked" => "1",
-        "visibility" => "0"
-    ]);    
-    sga_save_course_custom_field($painel_ava, 'sala_tipo', 'Tipo de sala', 'dynamic', $configdata);
+    sga_save_course_custom_field($painel_ava, 'curso_autoinscricao', 'Curso aceita autoinscrição', 'checkbox');
+    sga_save_course_custom_field($painel_ava, 'sala_tipo', 'Tipo de sala');
+    // $sql = "       SELECT 'diarios'        AS id, 'Diários'        AS data"
+    //      . " UNION SELECT 'autoinscricoes' AS id, 'Autoinscrições' AS data"
+    //      . " UNION SELECT 'coordenacoes'   AS id, 'Coordenações'   AS data"
+    //      . " UNION SELECT 'praticas'       AS id, 'Práticas'       AS data"
+    //      . " UNION SELECT 'modelos'        AS id, 'Modelos'        AS data";    
+    // $configdata = json_encode([
+    //     "required" => "0",
+    //     "uniquevalues" => "0",
+    //     "dynamicsql" => $sql,
+    //     "autocomplete" => "0",
+    //     "defaultvalue" => "",
+    //     "multiselect" => "0",
+    //     "locked" => "1",
+    //     "visibility" => "0"
+    // ]);    
+    // sga_save_course_custom_field($painel_ava, 'sala_tipo', 'Tipo de sala', 'dynamic', $configdata);
 }
 
 
