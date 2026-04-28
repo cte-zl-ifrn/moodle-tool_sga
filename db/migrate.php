@@ -195,6 +195,7 @@ function sga_bulk_user_custom_field()
 
     sga_save_user_custom_field($cid, 'polo_id', 'ID do pólo');
     sga_save_user_custom_field($cid, 'polo_nome', 'Nome do pólo');
+    sga_save_user_custom_field($cid, 'polo_sigla', 'Sigla do pólo');
 
     sga_save_user_custom_field($cid, 'ingresso_periodo', 'Período de ingresso');
 
