@@ -50,7 +50,7 @@ function sga_save_course_custom_category($name) {
 }
 
 
-function sga_save_course_custom_field($categoryid, $shortname, $name, $type = 'text', $configdata = '{"required":"0","uniquevalues":"0","displaysize":50,"maxlength":250,"ispassword":"0","link":"","locked":"0","visibility":"0"}')
+function sga_save_course_custom_field($categoryid, $shortname, $name, $type = 'text', $configdata = '{"required":"0","uniquevalues":"0","displaysize":50,"maxlength":4000,"ispassword":"0","link":"","locked":"0","visibility":"0"}')
 {
     return \tool_sga\get_or_create(
         'customfield_field',
